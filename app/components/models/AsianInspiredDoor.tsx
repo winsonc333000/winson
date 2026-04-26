@@ -8,7 +8,7 @@ import * as THREE from 'three';
 const AsianInspiredDoor = (props: JSX.IntrinsicElements['group']) => {
   const leftRef = useRef<THREE.Group>(null);
   const rightRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF('models/asian_inspired_door.glb');
+  const { scene } = useGLTF('https://github.com/winsonc333000/winson/releases/download/glb/asian_inspired_door.glb');
   const data = useScroll();
 
   const { frame, leftDoor, rightDoor, leftHingeX, rightHingeX, fullSize, fullCenter } = useMemo(() => {
@@ -113,6 +113,6 @@ const AsianInspiredDoor = (props: JSX.IntrinsicElements['group']) => {
   );
 };
 
-useGLTF.preload('models/asian_inspired_door.glb');
+useGLTF.preload('https://github.com/winsonc333000/winson/releases/download/glb/asian_inspired_door.glb');
 
 export default AsianInspiredDoor;

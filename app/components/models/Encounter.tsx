@@ -153,7 +153,7 @@ export function Encounter(props: JSX.IntrinsicElements['group']) {
   // useGLTF suspends until the GLTF (including the afterRoot processing above)
   // is fully loaded.  By then all Tiltbrush materials are already applied.
   const { scene } = useGLTF(
-    'models/encounter.glb',
+    'https://github.com/winsonc333000/winson/releases/download/glb/encounter.glb',
     undefined,
     undefined,
     extendLoader as (loader: unknown) => void
@@ -163,7 +163,7 @@ export function Encounter(props: JSX.IntrinsicElements['group']) {
 }
 
 useGLTF.preload(
-  'models/encounter.glb',
+  'https://github.com/winsonc333000/winson/releases/download/glb/encounter.glb',
   undefined,
   undefined,
   extendLoader as (loader: unknown) => void
