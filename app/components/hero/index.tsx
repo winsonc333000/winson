@@ -1,15 +1,15 @@
 'use client';
 
 import { Text } from "@react-three/drei";
-
 import { useProgress } from "@react-three/drei";
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import CloudContainer from "../models/Cloud";
 import StarsContainer from "../models/Stars";
-import WindowModel from "../models/WindowModel";
+import AsianInspiredDoor from "../models/AsianInspiredDoor";
 import TextWindow from "./TextWindow";
+
 
 const Hero = () => {
   const titleRef = useRef<THREE.Mesh>(null);
@@ -39,8 +39,8 @@ const Hero = () => {
       <StarsContainer />
       <CloudContainer/>
       <group position={[0, -25, 5.69]}>
-        <pointLight castShadow position={[1, 1, -2.5]} intensity={60} distance={10}/>
-        <WindowModel receiveShadow/>
+        <pointLight castShadow position={[1, 1, 1]} intensity={60} distance={10}/>
+        <AsianInspiredDoor receiveShadow position={[0, 0, -0.7]} rotation={[4.7, 0, 0]} scale={0.7} />
         <TextWindow/>
       </group>
     </>

@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large model files - host externally
+public/models/*.glb
+public/models/the_last_stronghold_animated_gltf/

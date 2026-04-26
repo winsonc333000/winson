@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import { Memory } from '../models/Memory'
 import { Wanderer } from '../models/Wanderer'
-import WindowModel from '../models/WindowModel'
+import AsianInspiredDoor from '../models/AsianInspiredDoor'
 
 // List of models to preload.
-const MODELS = [WindowModel, Memory, Wanderer];
+const MODELS = [AsianInspiredDoor, Memory, Wanderer];
 
 const Preloader = () => {
   const [visible, setVisible] = useState(true);

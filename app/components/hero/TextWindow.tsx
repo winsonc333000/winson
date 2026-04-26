@@ -59,7 +59,7 @@ const TextWindow = () => {
           fontSize={0.8}
           position={[0, 0, -0.6]}
           rotation={[0, -Math.PI / 2,  -Math.PI / 2]}>
-          UI UX | MARKETING
+          UI UX. MARKETING
         </Text>
       </group>
 
@@ -69,7 +69,7 @@ const TextWindow = () => {
           scale={[-1, -1, 1]}
           fontSize={0.8}
           rotation={[0, -Math.PI / 2,  -Math.PI / 2]}>
-          GAMER. CREATIVE
+          FASHION. CREATIVE
         </Text>
         <Text color="white" anchorX="right" anchorY="middle"
           {...fontProps}

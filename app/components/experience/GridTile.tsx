@@ -56,11 +56,46 @@ const GridTile = (props: GridTileProps) => {
     }
   });
 
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      exitPortal(true);
+  const handleEscape = useRef<(e: KeyboardEvent) => void>(null);
+  // Always holds the latest exitPortal so close button / escape key don't
+  // call a stale closure captured at portal-entry time.
+  const exitPortalRef = useRef<(force?: boolean) => void>(null);
+
+  const exitPortal = (force = false) => {
+    if (!force && !activePortalId) return;
+    // Call immediately so portal-specific useFrames (Work/Projects camera
+    // manipulations) stop. ScrollWrapper then smoothly damps rotation and
+    // position.y/z back via its own useFrame — no GSAP conflict.
+    setActivePortal(null);
+
+    // Only reset x: ScrollWrapper never touches position.x but Projects moves
+    // it to 2. rotation and position.y/z are handled by ScrollWrapper.
+    gsap.to(camera.position, { x: 0, duration: 1 });
+
+    gsap.to(portalRef.current, {
+      blend: 0,
+      duration: 1,
+    });
+
+    const closeEl = document.querySelector('.close');
+    if (closeEl) {
+      gsap.to(closeEl, {
+        scale: 0,
+        duration: 0.5,
+        onComplete: () => {
+          document.querySelectorAll('.close').forEach((el) => el.remove());
+        }
+      });
+    }
+
+    if (handleEscape.current) {
+      document.body.removeEventListener('keydown', handleEscape.current);
+      handleEscape.current = null;
     }
   };
+
+  // Keep the ref in sync with the latest render's exitPortal.
+  exitPortalRef.current = exitPortal;
 
   const portalInto = (e: React.MouseEvent) => {
     if (isActive || activePortalId) return;
@@ -71,7 +106,8 @@ const GridTile = (props: GridTileProps) => {
 
     div.className = 'fixed close';
     div.style.transform = 'rotateX(90deg)';
-    div.onclick = () => exitPortal(true);
+    // Use the ref so the click always calls the current exitPortal.
+    div.onclick = () => exitPortalRef.current?.(true);
 
     if (!document.querySelector('.close')) {
       document.body.appendChild(div);
@@ -87,45 +123,13 @@ const GridTile = (props: GridTileProps) => {
         duration: 1,
       })
     }
-    document.body.addEventListener('keydown', handleEscape);
+    handleEscape.current = (e: KeyboardEvent) => { if (e.key === 'Escape') exitPortalRef.current?.(true); };
+    document.body.addEventListener('keydown', handleEscape.current);
     gsap.to(portalRef.current, {
       blend: 1,
       duration: 0.5,
     });
   };
-
-  const exitPortal = (force = false) => {
-    if (!force && !activePortalId) return;
-    setActivePortal(null)
-
-    gsap.to(camera.position, {
-      x: 0,
-      duration: 1,
-    });
-
-    gsap.to(camera.rotation, {
-      x: -Math.PI / 2,
-      y: 0,
-      duration: 1,
-    });
-
-    gsap.to(portalRef.current, {
-      blend: 0,
-      duration: 1,
-    });
-
-    // Remove the div from the dom
-    gsap.to(document.querySelector('.close'), {
-      scale: 0,
-      duration: 0.5,
-      onComplete: () => {
-        document.querySelectorAll('.close').forEach((el) => {
-          el.remove();
-        });
-      }
-    })
-    document.body.removeEventListener('keydown', handleEscape);
-  }
 
   const fontProps: Partial<TextProps> = {
     font: "./soria-font.ttf",
@@ -196,6 +200,7 @@ const GridTile = (props: GridTileProps) => {
           {title}
         </Text>
       </group>
+      {!activePortalId && <Edges color="white" lineWidth={2} depthTest={false} renderOrder={1} />}
       <MeshPortalMaterial ref={portalRef} blend={0} resolution={0} blur={0}>
         <color attach="background" args={[color]} />
         {children}

@@ -6,7 +6,7 @@ const CloudContainer = () => {
     <Clouds material={THREE.MeshBasicMaterial}
       position={[0, -5, 0]}
       frustumCulled={false}>
-      <Cloud seed={1}
+      <Cloud seed={1} color="white"
         segments={1}
         concentrate="inside"
         bounds={[10, 10, 10]}
@@ -18,8 +18,7 @@ const CloudContainer = () => {
         speed={0.2}
         fade={5}
         />
-      <Cloud
-        seed={3}
+      <Cloud seed={3} color="white"
         segments={1}
         concentrate="outside"
         bounds={[10, 10, 10]}
@@ -31,8 +30,7 @@ const CloudContainer = () => {
         fade={3}
         speed={0.1}/>
 
-      <Cloud
-        seed={4}
+      <Cloud seed={4} color="white"
         segments={1}
         concentrate="outside"
         bounds={[10, 20, 15]}
@@ -43,8 +41,7 @@ const CloudContainer = () => {
         speed={0.2}
         volume={3}/>
 
-      <Cloud
-        seed={5}
+      <Cloud seed={5} color="white"
         segments={1}
         concentrate="outside"
         bounds={[5, 5, 5]}
@@ -56,8 +53,7 @@ const CloudContainer = () => {
         fade={0.1}
         speed={0.1}/>
 
-      <Cloud
-        seed={6}
+      <Cloud seed={6} color="white"
         segments={1}
         concentrate="outside"
         bounds={[5, 5, 5]}
@@ -69,8 +65,7 @@ const CloudContainer = () => {
         fade={0.1}
         speed={0.1}/>
 
-      <Cloud
-        seed={7}
+      <Cloud seed={7} color="white"
         segments={1}
         concentrate="outside"
         bounds={[5, 5, 5]}

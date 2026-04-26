@@ -5,7 +5,7 @@ export const WORK_TIMELINE: WorkTimelinePoint[] = [
   {
     point: new THREE.Vector3(0, 0, 0),
     year: '2023',
-    title: 'Huang Trading',
+    title: 'Hui Huang Trading',
     subtitle: 'Finance Intern',
     position: 'right',
   },
@@ -31,7 +31,14 @@ export const WORK_TIMELINE: WorkTimelinePoint[] = [
     position: 'left',
   },
   {
-    point: new THREE.Vector3(1, 1, -12),
+    point: new THREE.Vector3(0.3, 2.5, -11),
+    year: '2025',
+    title: 'FITNYC',
+    subtitle: 'Student',
+    position: 'right',
+  },
+  {
+    point: new THREE.Vector3(0.3, 6, -11),
     year: new Date().toLocaleDateString('default', { year: 'numeric' }),
     title: '?',
     subtitle: '???',

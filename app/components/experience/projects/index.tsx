@@ -1,11 +1,11 @@
-import { useScroll } from "@react-three/drei";
+import { Stars, useScroll } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import gsap from "gsap";
 import { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from "three";
 import { usePortalStore } from "@stores";
-import { Wanderer } from "../../models/Wanderer";
+import { Encounter } from "../../models/Encounter";
 import ProjectsCarousel from "./ProjectsCarousel";
 import { TouchPanControls } from "./TouchPanControls";
 
@@ -37,7 +37,15 @@ const Projects = () => {
 
   return (
     <group>
-      <Wanderer rotation={new THREE.Euler(0, Math.PI / 6, 0)} scale={new THREE.Vector3(1.5, 1.5, 1.5)} position={new THREE.Vector3(0, -1, -1)}/>
+      <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={["#000000", 35, 130]} />
+      <Stars radius={200} depth={100} count={5000} factor={10} saturation={10} fade={true} speed={1} />
+      <ambientLight intensity={0.2} />
+      <hemisphereLight args={["#c8d0d8", "#909aaa", 0.3]} />
+      <directionalLight castShadow position={[5, 20, 8]} intensity={0.2} color="#f0ece8" shadow-mapSize={[2048, 2048]} />
+      <Encounter scale={new THREE.Vector3(2, 2, 2)} position={new THREE.Vector3(2.15, -3.5, -17.5)} rotation={new THREE.Euler(0.05, 2.03, 0)} />
+
+
       <ProjectsCarousel />
       { isActive && isMobile && <TouchPanControls /> }
     </group>
