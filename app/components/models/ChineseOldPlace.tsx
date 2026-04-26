@@ -21,7 +21,7 @@ const MATERIAL_TEXTURES: Record<string, string> = {
 }
 
 export function ChineseOldPlace({ rotation, ...props }: JSX.IntrinsicElements['group']) {
-  const { scene, animations } = useGLTF('https://github.com/winsonc333000/winson/releases/download/glb/the_last_stronghold_animated.glb')
+  const { scene, animations } = useGLTF('/models/the_last_stronghold_animated.glb')
   const { actions } = useAnimations(animations, scene)
   const groupRef = useRef<THREE.Group>(null)
   const isDragging = useRef(false)
@@ -112,4 +112,4 @@ export function ChineseOldPlace({ rotation, ...props }: JSX.IntrinsicElements['g
   )
 }
 
-useGLTF.preload('https://github.com/winsonc333000/winson/releases/download/glb/the_last_stronghold_animated.glb')
+useGLTF.preload('/models/the_last_stronghold_animated.glb')
