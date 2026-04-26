@@ -120,10 +120,7 @@ function makeTiltBrushPlugin(_parser: unknown) {
           if (!matName) return;
 
           const brushName = tiltLoader.lookupMaterialName(matName);
-          if (!brushName) {
-            console.warn('[Encounter] No brush for material:', matName);
-            return;
-          }
+          if (!brushName) return;
 
           setupGeometry(obj.geometry);
 
