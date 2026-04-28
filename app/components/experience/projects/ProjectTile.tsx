@@ -164,13 +164,6 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
     const imageProjects = PROJECTS.filter(p => p.image);
     let currentIdx = imageProjects.findIndex(p => p.image === project.image);
 
-    // Preload all images as DOM Image objects so navigation is instant
-    const domImages: HTMLImageElement[] = imageProjects.map(p => {
-      const el = new Image();
-      el.src = p.image!;
-      return el;
-    });
-
     // --- overlay ---
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -178,12 +171,25 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
       align-items:center;justify-content:center;z-index:1000;
     `;
 
-    const img = document.createElement('img');
-    img.src = imageProjects[currentIdx].image!;
-    img.style.cssText = `
-      max-width:82vw;max-height:88vh;object-fit:contain;
-      border-radius:4px;opacity:0;transform:scale(0.9);pointer-events:none;
-    `;
+    // Pre-render every image into the DOM so there's no decode delay on navigate.
+    // All are stacked absolutely; only the current one is visible.
+    const imgContainer = document.createElement('div');
+    imgContainer.style.cssText = `position:relative;max-width:82vw;max-height:88vh;`;
+
+    const imgs = imageProjects.map((p, i) => {
+      const el = document.createElement('img');
+      el.src = p.image!;
+      el.style.cssText = `
+        max-width:82vw;max-height:88vh;object-fit:contain;border-radius:4px;
+        pointer-events:none;display:block;
+        position:${i === 0 ? 'relative' : 'absolute'};top:0;left:0;
+        opacity:${i === currentIdx ? '0' : '0'};
+      `;
+      imgContainer.appendChild(el);
+      return el;
+    });
+
+    overlay.appendChild(imgContainer);
 
     // --- close button ---
     const closeBtn = document.createElement('button');
@@ -209,7 +215,6 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
     nextBtn.innerHTML = '&#8594;';
     nextBtn.style.cssText = arrowStyle + 'right:24px;';
 
-    overlay.appendChild(img);
     document.body.appendChild(overlay);
     document.body.appendChild(closeBtn);
     document.body.appendChild(prevBtn);
@@ -223,34 +228,34 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
 
     // animate in
     gsap.to(overlay, { background: 'rgba(0,0,0,0.92)', duration: 0.3 });
-    gsap.to(img, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' });
+    gsap.to(imgs[currentIdx], { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' });
     gsap.to([closeBtn, prevBtn, nextBtn], { opacity: 1, duration: 0.3, delay: 0.15 });
 
+    let navigating = false;
     const navigate = (dir: number) => {
+      if (navigating) return;
       const next = currentIdx + dir;
       if (next < 0 || next >= imageProjects.length) return;
-      gsap.to(img, {
-        opacity: 0, x: dir * -40, duration: 0.2,
-        onComplete: () => {
-          currentIdx = next;
-          const show = () => {
-            img.src = imageProjects[currentIdx].image!;
-            gsap.fromTo(img, { opacity: 0, x: dir * 40 }, { opacity: 1, x: 0, duration: 0.25 });
-            updateArrowVisibility();
-          };
-          const preloaded = domImages[currentIdx];
-          if (preloaded.complete) {
-            show();
-          } else {
-            preloaded.onload = show;
-            preloaded.onerror = show;
-          }
-        },
-      });
+      navigating = true;
+
+      const outImg = imgs[currentIdx];
+      const inImg = imgs[next];
+
+      gsap.to(outImg, { opacity: 0, x: dir * -50, duration: 0.18 });
+      gsap.fromTo(inImg,
+        { opacity: 0, x: dir * 50 },
+        { opacity: 1, x: 0, duration: 0.22, delay: 0.1, onComplete: () => {
+          gsap.set(outImg, { x: 0 });
+          navigating = false;
+        }}
+      );
+
+      currentIdx = next;
+      updateArrowVisibility();
     };
 
     const close = () => {
-      gsap.to(img, { opacity: 0, scale: 0.9, duration: 0.25 });
+      gsap.to(imgs[currentIdx], { opacity: 0, scale: 0.9, duration: 0.25 });
       gsap.to([closeBtn, prevBtn, nextBtn], { opacity: 0, duration: 0.2 });
       gsap.to(overlay, {
         background: 'rgba(0,0,0,0)', duration: 0.3,
