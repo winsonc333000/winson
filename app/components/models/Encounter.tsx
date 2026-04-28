@@ -159,3 +159,5 @@ export function Encounter(props: JSX.IntrinsicElements['group']) {
   return <primitive object={scene} {...props} />;
 }
 
+// Preload is deferred to scroll position in experience/index.tsx
+export { extendLoader };

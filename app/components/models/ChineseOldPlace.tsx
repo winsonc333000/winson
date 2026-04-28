@@ -112,3 +112,4 @@ export function ChineseOldPlace({ rotation, ...props }: JSX.IntrinsicElements['g
   )
 }
 
+// Preload is deferred to scroll position in experience/index.tsx

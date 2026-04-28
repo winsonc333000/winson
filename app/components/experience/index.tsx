@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from 'three';
 import { useGLTF } from "@react-three/drei";
+import { extendLoader } from "../models/Encounter";
 import GridTile from "./GridTile";
 import Projects from "./projects";
 import Work from "./work";
@@ -29,6 +30,7 @@ const Experience = () => {
     if (d > 0 && !preloadedRef.current) {
       preloadedRef.current = true;
       useGLTF.preload('/models/the_last_stronghold_animated.glb');
+      useGLTF.preload('/models/encounter.glb', undefined, undefined, extendLoader as (loader: unknown) => void);
     }
 
     if (groupRef.current && !isActive) {
