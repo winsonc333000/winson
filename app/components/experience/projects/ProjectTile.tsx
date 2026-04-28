@@ -164,6 +164,13 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
     const imageProjects = PROJECTS.filter(p => p.image);
     let currentIdx = imageProjects.findIndex(p => p.image === project.image);
 
+    // Preload all images as DOM Image objects so navigation is instant
+    const domImages: HTMLImageElement[] = imageProjects.map(p => {
+      const el = new Image();
+      el.src = p.image!;
+      return el;
+    });
+
     // --- overlay ---
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -226,9 +233,18 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
         opacity: 0, x: dir * -40, duration: 0.2,
         onComplete: () => {
           currentIdx = next;
-          img.src = imageProjects[currentIdx].image!;
-          gsap.fromTo(img, { opacity: 0, x: dir * 40 }, { opacity: 1, x: 0, duration: 0.25 });
-          updateArrowVisibility();
+          const show = () => {
+            img.src = imageProjects[currentIdx].image!;
+            gsap.fromTo(img, { opacity: 0, x: dir * 40 }, { opacity: 1, x: 0, duration: 0.25 });
+            updateArrowVisibility();
+          };
+          const preloaded = domImages[currentIdx];
+          if (preloaded.complete) {
+            show();
+          } else {
+            preloaded.onload = show;
+            preloaded.onerror = show;
+          }
         },
       });
     };
