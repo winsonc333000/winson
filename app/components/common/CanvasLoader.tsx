@@ -1,7 +1,7 @@
 'use client';
 
 import { useGSAP } from "@gsap/react";
-import { AdaptiveDpr, ScrollControls, useProgress } from "@react-three/drei";
+import { AdaptiveDpr, Preload, ScrollControls, useProgress } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import gsap from "gsap";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -43,7 +43,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
 
   useGSAP(() => {
     if (progress === 100) {
-      gsap.to('.base-canvas', { opacity: 1, duration: 3, delay: 1 });
+      gsap.to('.base-canvas', { opacity: 1, duration: 1, delay: 0.2 });
     }
   }, [progress]);
 
@@ -84,6 +84,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
               <Preloader />
             </ScrollControls>
 
+            <Preload all />
           </Suspense>
           <AdaptiveDpr pixelated/>
         </Canvas>
