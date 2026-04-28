@@ -4,6 +4,7 @@ import { usePortalStore } from "@stores";
 import { useRef } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from 'three';
+import { useGLTF } from "@react-three/drei";
 import GridTile from "./GridTile";
 import Projects from "./projects";
 import Work from "./work";
@@ -13,6 +14,7 @@ const Experience = () => {
   const groupRef = useRef<THREE.Group>(null);
   const data = useScroll();
   const isActive = usePortalStore((state) => !!state.activePortalId);
+  const preloadedRef = useRef(false);
 
   const fontProps = {
     font: "./soria-font.ttf",
@@ -23,6 +25,11 @@ const Experience = () => {
   useFrame((sate, delta) => {
     const d = data.range(0.8, 0.2);
     const e = data.range(0.7, 0.2);
+
+    if (d > 0 && !preloadedRef.current) {
+      preloadedRef.current = true;
+      useGLTF.preload('/models/the_last_stronghold_animated.glb');
+    }
 
     if (groupRef.current && !isActive) {
       groupRef.current.position.y = d > 0 ? -1 : -30;
