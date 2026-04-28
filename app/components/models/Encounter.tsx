@@ -159,9 +159,3 @@ export function Encounter(props: JSX.IntrinsicElements['group']) {
   return <primitive object={scene} {...props} />;
 }
 
-useGLTF.preload(
-  '/models/encounter.glb',
-  undefined,
-  undefined,
-  extendLoader as (loader: unknown) => void
-);

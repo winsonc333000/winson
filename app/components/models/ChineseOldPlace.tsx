@@ -112,4 +112,3 @@ export function ChineseOldPlace({ rotation, ...props }: JSX.IntrinsicElements['g
   )
 }
 
-useGLTF.preload('/models/the_last_stronghold_animated.glb')
