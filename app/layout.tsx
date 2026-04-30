@@ -15,11 +15,11 @@ const vercettiFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Winson Chen – Marketing Designer",
+  title: "Winson Chen – Creative",
   description:
-    "Portfolio of Winson Chen, a marketing designer focused on launch campaigns and product storytelling.",
+    "Portfolio of Winson Chen, a creative focused on launch campaigns and product storytelling.",
   keywords:
-    "Winson Chen, Marketing Designer, Brand Design, Visual Design, Campaigns, Portfolio, UI-UX",
+    "Winson Chen, Creative, Brand Design, Visual Design, Campaigns, Portfolio, UI-UX",
   authors: [{ name: "Winson Chen" }],
   creator: "Winson Chen",
   publisher: "Winson Chen",
@@ -39,19 +39,19 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Winson Chen – Marketing Designer",
+    title: "Winson Chen – Creative",
     description:
-      "Marketing designer focused on launch campaigns and product storytelling.",
-    url: "https://mohitvirli.github.io", // update if you change domain
+      "Creative focused on launch campaigns and product storytelling.",
+    url: "https://www.winsonchen.digital",
     siteName: "Winson Chen – Portfolio",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Winson Chen – Marketing Designer",
+    title: "Winson Chen – Creative",
     description:
-      "Marketing designer focused on launch campaigns and product storytelling.",
+      "Creative focused on launch campaigns and product storytelling.",
   },
   // If you don't need Google verification, you can remove this block.
   // verification: {
