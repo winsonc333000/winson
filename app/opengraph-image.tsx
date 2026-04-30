@@ -1,6 +1,6 @@
-import { ImageResponse } from '@vercel/og';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { ImageResponse } from 'next/og';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export const runtime = 'nodejs';
 export const alt = 'Winson Chen – Creative';
