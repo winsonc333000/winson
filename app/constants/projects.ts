@@ -4,7 +4,7 @@ import { Project } from "../types";
 export const PROJECTS: Project[] = [
   {
     title: 'Digital Portfolio',
-    date: 'Aug 2016',
+    date: 'Aug 2025',
     subtext: 'A digital portfolio showcasing all my design work and projects',
     url: 'https://winsonc333000.wixsite.com/design',
   },
