@@ -28,14 +28,12 @@ const AsianInspiredDoor = (props: JSX.IntrinsicElements['group']) => {
     });
 
     meshes.forEach((mesh) => {
-      // Fix glass material — render as transparent instead of opaque black
+      // Glass renders fully transparent. Hiding it is equivalent visually and
+      // skips the draw call entirely — at opacity 0 it was still being
+      // depth-sorted and blended every frame.
       const mat = mesh.material as THREE.MeshStandardMaterial;
       if (mat?.name === 'glass') {
-        mat.transparent = true;
-        mat.opacity = 0;
-        mat.roughness = 0;
-        mat.metalness = 0.1;
-        mat.needsUpdate = true;
+        mesh.visible = false;
       }
 
       mesh.updateWorldMatrix(true, false);

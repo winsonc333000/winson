@@ -5,21 +5,6 @@ import { useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-const TEXTURE_BASE = '/models/the_last_stronghold_animated_gltf/textures'
-
-const MATERIAL_TEXTURES: Record<string, string> = {
-  sky_sketchfab:    `${TEXTURE_BASE}/sky_sketchfab_baseColor.jpeg`,
-  final_gate_low:   `${TEXTURE_BASE}/final_gate_low_emissive.jpeg`,
-  final_alfa:       `${TEXTURE_BASE}/final_alfa_emissive.jpeg`,
-  final_gate_top:   `${TEXTURE_BASE}/final_gate_top_emissive.jpeg`,
-  final_B:          `${TEXTURE_BASE}/final_B_emissive.jpeg`,
-  final_SOMT:       `${TEXTURE_BASE}/final_SOMT_emissive.jpeg`,
-  final_E:          `${TEXTURE_BASE}/final_E_emissive.jpeg`,
-  final_A:          `${TEXTURE_BASE}/final_A_emissive.jpeg`,
-  final_rope:       `${TEXTURE_BASE}/final_rope_emissive.jpeg`,
-  final_C:          `${TEXTURE_BASE}/final_C_emissive.jpeg`,
-}
-
 export function ChineseOldPlace({ rotation, ...props }: JSX.IntrinsicElements['group']) {
   const { scene, animations } = useGLTF('/models/the_last_stronghold_animated.glb')
   const { actions } = useAnimations(animations, scene)
@@ -59,32 +44,18 @@ export function ChineseOldPlace({ rotation, ...props }: JSX.IntrinsicElements['g
   }, [scene])
 
   useEffect(() => {
-    const loader = new THREE.TextureLoader()
-    const applied = new Set<string>()
-
+    // These materials declare KHR_materials_unlit, so three builds a
+    // MeshBasicMaterial — it has no `emissive`/`emissiveMap` and ignores
+    // lighting entirely. The artwork therefore has to arrive via `map`, which
+    // the GLB supplies as baseColorTexture; nothing needs assigning here.
     scene.traverse((obj: any) => {
       if (!obj.isMesh || !obj.material) return
       const mat = obj.material as any
-      const name: string = mat.name
-
-      if (applied.has(name)) return
-      applied.add(name)
-
-      const texPath = MATERIAL_TEXTURES[name]
-      if (!texPath) return
-
-      loader.load(texPath, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace
-        texture.flipY = false
-        mat.map = texture
-        mat.color.set(0xffffff)
-        mat.toneMapped = false
-        if (name === 'sky_sketchfab') {
-          mat.side = THREE.FrontSide
-          obj.visible = true
-        }
-        mat.needsUpdate = true
-      })
+      mat.toneMapped = false
+      if (mat.name === 'sky_sketchfab') {
+        mat.side = THREE.FrontSide
+        obj.visible = true
+      }
     })
   }, [scene])
 

@@ -1,6 +1,7 @@
-import { Text, useScroll } from "@react-three/drei";
+import { Text, useScroll, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { usePortalStore } from "@stores";
+import { PROJECTS } from "@constants";
+import { usePortalStore, useScrollStore } from "@stores";
 import { useRef } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from 'three';
@@ -16,6 +17,7 @@ const Experience = () => {
   const data = useScroll();
   const isActive = usePortalStore((state) => !!state.activePortalId);
   const preloadedRef = useRef(false);
+  const setDeferredAssetsReady = useScrollStore((state) => state.setDeferredAssetsReady);
 
   const fontProps = {
     font: "./soria-font.ttf",
@@ -31,6 +33,8 @@ const Experience = () => {
       preloadedRef.current = true;
       useGLTF.preload('/models/the_last_stronghold_animated.glb');
       useGLTF.preload('/models/encounter.glb', undefined, undefined, extendLoader as (loader: unknown) => void);
+      PROJECTS.forEach((p) => { if (p.image) useTexture.preload(p.image); });
+      setDeferredAssetsReady(true);
     }
 
     if (groupRef.current && !isActive) {

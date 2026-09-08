@@ -1,13 +1,9 @@
-import { useTexture } from "@react-three/drei";
 import { useEffect, useState } from "react";
 import { isMobile } from "react-device-detect";
 import ProjectTile from "./ProjectTile";
 
 import { PROJECTS } from "@constants";
 import { usePortalStore } from "@stores";
-
-// Preload all project images so textures are ready before first hover
-PROJECTS.forEach(p => { if (p.image) useTexture.preload(p.image); });
 
 const ProjectsCarousel = () => {
   const [activeId, setActiveId] = useState<number | null>(null);

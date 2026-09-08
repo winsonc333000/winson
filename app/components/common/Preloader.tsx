@@ -1,25 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import AsianInspiredDoor from '../models/AsianInspiredDoor'
 
 // List of models to preload.
 const MODELS = [AsianInspiredDoor];
 
 const Preloader = () => {
-  const [visible, setVisible] = useState(true);
-
-  // Hacky way to preload the models by setting them on to the scene and
-  // removing them after a timeout as the base canvas is shown after a delay.
-  useEffect(() => {
-    setTimeout(() => {
-      setVisible(false);
-    }, 0);
-  }, []);
-
+  // Mounting the models is enough to pull them through useGLTF/Suspense so they
+  // are cached and counted by useProgress. They stay invisible: <Preload all />
+  // temporarily flips visible=false objects on to compile their materials and
+  // flips them back, so nothing here needs to be rendered to the screen.
+  //
+  // Previously these were rendered visible for one tick and hidden via
+  // setTimeout. Because they mount at the world origin — right in front of the
+  // starting camera — that frame stayed on screen for as long as the main
+  // thread was busy parsing the GLB and compiling shaders, flashing a
+  // full-screen door just as the canvas faded in.
   return (<>
     {MODELS.map((Component, index) => (
-      <Component key={index} visible={visible}/>
+      <Component key={index} visible={false} />
     ))}
   </>)
 }

@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   // skip strict mode
   reactStrictMode: false,
+  outputFileTracingRoot: __dirname,
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   env: {

@@ -6,7 +6,7 @@ import { isMobile } from "react-device-detect";
 import * as THREE from "three";
 
 import { PROJECTS } from "@constants";
-import { usePortalStore } from "@stores";
+import { usePortalStore, useScrollStore } from "@stores";
 import { Project } from "@types";
 
 interface ProjectTileProps {
@@ -26,9 +26,14 @@ const ProjectImage = React.forwardRef<THREE.Mesh, { src: string }>(({ src }, ref
 
   useLayoutEffect(() => {
     texture.colorSpace = THREE.SRGBColorSpace;
-    texture.minFilter = THREE.LinearFilter;
+    // Mipmaps matter here: the card is ~400px on screen, so without them the
+    // GPU samples the full-resolution image every frame.
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
-    texture.anisotropy = gl.capabilities.getMaxAnisotropy();
+    // Anisotropy only does anything once mipmaps exist. Cap it — the max is
+    // typically 16, which costs more than it buys at this size.
+    texture.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
     texture.needsUpdate = true;
   }, [texture, gl]);
 
@@ -46,6 +51,9 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
   const hoverAnimRef = useRef<gsap.core.Timeline | null>(null);
   const hovered = activeId === index;
   const isProjectSectionActive = usePortalStore((state) => state.activePortalId === "projects");
+  // MeshPortalMaterial renders its children eagerly, so without this gate the
+  // texture would load at page load even though the card is never on screen.
+  const assetsReady = useScrollStore((state) => state.deferredAssetsReady);
 
   // Named refs — no longer relies on children index ordering
   const bgMeshRef = useRef<THREE.Mesh>(null);
@@ -171,23 +179,29 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
       align-items:center;justify-content:center;z-index:1000;
     `;
 
-    // Pre-render every image into the DOM so there's no decode delay on navigate.
-    // All are stacked absolutely; only the current one is visible.
+    // One <img> reused for every slide. Holding all of them in the DOM at once
+    // would keep every full-size bitmap decoded in memory simultaneously.
     const imgContainer = document.createElement('div');
     imgContainer.style.cssText = `position:relative;max-width:82vw;max-height:88vh;`;
 
-    const imgs = imageProjects.map((p, i) => {
-      const el = document.createElement('img');
-      el.src = p.image!;
-      el.style.cssText = `
-        max-width:82vw;max-height:88vh;object-fit:contain;border-radius:4px;
-        pointer-events:none;display:block;
-        position:${i === 0 ? 'relative' : 'absolute'};top:0;left:0;
-        opacity:${i === currentIdx ? '0' : '0'};
-      `;
-      imgContainer.appendChild(el);
-      return el;
-    });
+    const srcFor = (p: Project) => p.imageFull ?? p.image!;
+
+    const img = document.createElement('img');
+    img.src = srcFor(imageProjects[currentIdx]);
+    img.style.cssText = `
+      max-width:82vw;max-height:88vh;object-fit:contain;border-radius:4px;
+      pointer-events:none;display:block;opacity:0;
+    `;
+    imgContainer.appendChild(img);
+
+    // Warm the adjacent slides in the HTTP cache so a swap doesn't wait on
+    // the network, without keeping them decoded in the document.
+    const prefetch = (idx: number) => {
+      const p = imageProjects[idx];
+      if (p) new Image().src = srcFor(p);
+    };
+    prefetch(currentIdx - 1);
+    prefetch(currentIdx + 1);
 
     overlay.appendChild(imgContainer);
 
@@ -228,7 +242,7 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
 
     // animate in
     gsap.to(overlay, { background: 'rgba(0,0,0,0.92)', duration: 0.3 });
-    gsap.to(imgs[currentIdx], { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' });
+    gsap.to(img, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' });
     gsap.to([closeBtn, prevBtn, nextBtn], { opacity: 1, duration: 0.3, delay: 0.15 });
 
     let navigating = false;
@@ -238,24 +252,24 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
       if (next < 0 || next >= imageProjects.length) return;
       navigating = true;
 
-      const outImg = imgs[currentIdx];
-      const inImg = imgs[next];
-
-      gsap.to(outImg, { opacity: 0, x: dir * -50, duration: 0.18 });
-      gsap.fromTo(inImg,
-        { opacity: 0, x: dir * 50 },
-        { opacity: 1, x: 0, duration: 0.22, delay: 0.1, onComplete: () => {
-          gsap.set(outImg, { x: 0 });
-          navigating = false;
-        }}
-      );
+      gsap.to(img, {
+        opacity: 0, x: dir * -50, duration: 0.18,
+        onComplete: () => {
+          img.src = srcFor(imageProjects[next]);
+          gsap.fromTo(img,
+            { opacity: 0, x: dir * 50 },
+            { opacity: 1, x: 0, duration: 0.22, onComplete: () => { navigating = false; } }
+          );
+        },
+      });
 
       currentIdx = next;
       updateArrowVisibility();
+      prefetch(next + dir);
     };
 
     const close = () => {
-      gsap.to(imgs[currentIdx], { opacity: 0, scale: 0.9, duration: 0.25 });
+      gsap.to(img, { opacity: 0, scale: 0.9, duration: 0.25 });
       gsap.to([closeBtn, prevBtn, nextBtn], { opacity: 0, duration: 0.2 });
       gsap.to(overlay, {
         background: 'rgba(0,0,0,0)', duration: 0.3,
@@ -330,7 +344,7 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
         </group>
         {project.image ? (
           <Suspense fallback={null}>
-            <ProjectImage ref={imageCallbackRef} src={project.image} />
+            {assetsReady && <ProjectImage ref={imageCallbackRef} src={project.image} />}
           </Suspense>
         ) : (
           <Text

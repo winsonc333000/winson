@@ -39,8 +39,10 @@ const Hero = () => {
       <StarsContainer />
       <CloudContainer/>
       <group position={[0, -25, 5.69]}>
-        <pointLight castShadow position={[1, 1, 1]} intensity={60} distance={10}/>
-        <AsianInspiredDoor receiveShadow position={[0, 0, -0.7]} rotation={[4.7, 0, 0]} scale={0.7} />
+        {/* No castShadow: a point light renders a 6-face cube shadow map every
+            frame, and nothing in the door actually receives shadows. */}
+        <pointLight position={[1, 1, 1]} intensity={60} distance={10}/>
+        <AsianInspiredDoor position={[0, 0, -0.7]} rotation={[4.7, 0, 0]} scale={0.7} />
         <TextWindow/>
       </group>
     </>
