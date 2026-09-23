@@ -8,7 +8,10 @@ import Timeline from "./Timeline";
 
 const Work = () => {
   const isActive = usePortalStore((state) => state.activePortalId === 'work');
-  const { scrollProgress, setScrollProgress } = useScrollStore();
+  // Select narrowly: the main page writes scrollProgress every frame, and
+  // subscribing to the whole store re-rendered this entire portal scene each time.
+  const scrollProgress = useScrollStore((state) => isActive ? state.scrollProgress : 0);
+  const setScrollProgress = useScrollStore((state) => state.setScrollProgress);
 
   // Store refs to the scroll wrappers so we don't rely on fragile z-index
   // style queries that break when React re-renders and overwrites manual changes.
@@ -75,7 +78,7 @@ const Work = () => {
           position={new THREE.Vector3(-0.5, -2.7, -8)}
           rotation={new THREE.Euler(1, 1.3, 1)}
         />
-        <Timeline progress={isActive ? scrollProgress : 0} />
+        <Timeline progress={scrollProgress} />
       </ScrollControls>
     </group>
   );

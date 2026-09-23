@@ -12,7 +12,11 @@ interface ScrollStore {
 
 export const useScrollStore = create<ScrollStore>((set) => ({
   scrollProgress: 0,
-  setScrollProgress: (progress) => set(() => ({ scrollProgress: progress })),
+  // ScrollWrapper calls this every frame; skipping no-op updates keeps
+  // subscribers from re-rendering 60 times a second while idle.
+  setScrollProgress: (progress) => set((state) => (
+    state.scrollProgress === progress ? state : { scrollProgress: progress }
+  )),
   deferredAssetsReady: false,
   setDeferredAssetsReady: (ready) => set(() => ({ deferredAssetsReady: ready })),
 }));
