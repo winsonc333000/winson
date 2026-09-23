@@ -2,7 +2,7 @@ import { Text, useScroll, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { PROJECTS } from "@constants";
 import { usePortalStore, useScrollStore } from "@stores";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from 'three';
 import { useGLTF } from "@react-three/drei";
@@ -25,17 +25,28 @@ const Experience = () => {
     color: 'white',
   };
 
+  const loadDeferredAssets = () => {
+    if (preloadedRef.current) return;
+    preloadedRef.current = true;
+    useGLTF.preload('/models/the_last_stronghold_animated.glb');
+    useGLTF.preload('/models/encounter.glb', undefined, undefined, extendLoader as (loader: unknown) => void);
+    PROJECTS.forEach((p) => { if (p.image) useTexture.preload(p.image); });
+    setDeferredAssetsReady(true);
+  };
+
+  // Load while the viewer is still reading the hero, so decoding and GPU
+  // upload don't land mid-scroll. The scroll check below is the fallback for
+  // anyone who scrolls straight down before this fires.
+  useEffect(() => {
+    const timer = setTimeout(loadDeferredAssets, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   useFrame((sate, delta) => {
     const d = data.range(0.8, 0.2);
     const e = data.range(0.7, 0.2);
 
-    if (d > 0 && !preloadedRef.current) {
-      preloadedRef.current = true;
-      useGLTF.preload('/models/the_last_stronghold_animated.glb');
-      useGLTF.preload('/models/encounter.glb', undefined, undefined, extendLoader as (loader: unknown) => void);
-      PROJECTS.forEach((p) => { if (p.image) useTexture.preload(p.image); });
-      setDeferredAssetsReady(true);
-    }
+    if (d > 0) loadDeferredAssets();
 
     if (groupRef.current && !isActive) {
       groupRef.current.position.y = d > 0 ? -1 : -30;

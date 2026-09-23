@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { useEffect, useRef } from 'react';
 import { isMobile } from 'react-device-detect';
 import * as THREE from 'three';
+import WarmUp from '../common/WarmUp';
 import { TriangleGeometry } from './Triangle';
 
 interface GridTileProps {
@@ -16,6 +17,8 @@ interface GridTileProps {
   color: string;
   position: THREE.Vector3;
 }
+
+const corner = new THREE.Vector3();
 
 // TODO: Rename this
 const GridTile = (props: GridTileProps) => {
@@ -47,6 +50,43 @@ const GridTile = (props: GridTileProps) => {
       });
     }
   }, []);
+
+  // The portal renders its whole scene into a full-canvas render target every
+  // frame, but its material only samples the pixels under this tile. Scissor
+  // the render to the tile's on-screen rect so the rest isn't shaded for nothing.
+  useFrame(({ camera }) => {
+    // gridRef is typed as a Group but is attached to the tile mesh.
+    const mesh = gridRef.current as unknown as THREE.Mesh | null;
+    const target = (portalRef.current as { map?: THREE.Texture } | null)?.map?.renderTarget;
+    if (!mesh || !target) return;
+
+    const geometry = mesh.geometry;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    const box = geometry.boundingBox!;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z)
+        .applyMatrix4(mesh.matrixWorld)
+        .applyMatrix4(camera.matrixWorldInverse);
+      // A corner behind the camera makes the projected rect meaningless.
+      if (corner.z > -(camera as THREE.PerspectiveCamera).near) {
+        target.scissorTest = false;
+        return;
+      }
+      corner.applyMatrix4(camera.projectionMatrix);
+      minX = Math.min(minX, corner.x); maxX = Math.max(maxX, corner.x);
+      minY = Math.min(minY, corner.y); maxY = Math.max(maxY, corner.y);
+    }
+
+    // Pad so a frame of lag behind camera/hover movement never shows an edge.
+    const pad = 32;
+    const x = Math.max(0, Math.floor((minX * 0.5 + 0.5) * target.width) - pad);
+    const y = Math.max(0, Math.floor((minY * 0.5 + 0.5) * target.height) - pad);
+    const right = Math.min(target.width, Math.ceil((maxX * 0.5 + 0.5) * target.width) + pad);
+    const top = Math.min(target.height, Math.ceil((maxY * 0.5 + 0.5) * target.height) + pad);
+    target.scissor.set(x, y, Math.max(0, right - x), Math.max(0, top - y));
+    target.scissorTest = true;
+  });
 
   useFrame(() => {
     const d = data.range(0.95, 0.05);
@@ -204,6 +244,7 @@ const GridTile = (props: GridTileProps) => {
       <MeshPortalMaterial ref={portalRef} blend={0} resolution={0} blur={0}>
         <color attach="background" args={[color]} />
         {children}
+        <WarmUp />
       </MeshPortalMaterial>
     </mesh>
   );

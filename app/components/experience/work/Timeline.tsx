@@ -2,9 +2,10 @@ import { Box, Edges, Line, Text, TextProps } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { usePortalStore } from "@stores";
 import gsap from "gsap";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from "three";
+import { Line2 } from "three-stdlib";
 
 import { WORK_TIMELINE } from "@constants";
 import { WorkTimelinePoint } from "@types";
@@ -69,13 +70,24 @@ const Timeline = ({ progress }: { progress: number }) => {
 
   const curve = useMemo(() => new THREE.CatmullRomCurve3(timeline.map(p => p.point), false), [timeline]);
   const curvePoints = useMemo(() => curve.getPoints(500), [curve]);
-  const visibleCurvePoints = useMemo(() => curvePoints.slice(0, Math.max(1, Math.ceil(progress * curvePoints.length))), [curvePoints, progress]);
   const visibleTimelinePoints = useMemo(() => timeline.slice(0, Math.max(1, Math.round(progress * (timeline.length - 1) + 1))), [timeline, progress]);
 
-  const [visibleDashedCurvePoints, setVisibleDashedCurvePoints] = useState<THREE.Vector3[]>([]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Both lines are built once from the full curve and revealed by limiting how
+  // many segments draw. Passing drei's <Line> a new points array rebuilds its
+  // geometry and disposes its material, forcing a shader re-link per update.
+  const solidLineRef = useRef<Line2>(null);
+  const dashedLineRef = useRef<Line2>(null);
+  const dashedReveal = useRef({ value: 0 });
 
   useFrame((_, delta) => {
+    const segments = curvePoints.length - 1;
+    if (solidLineRef.current) {
+      solidLineRef.current.geometry.instanceCount = Math.max(1, Math.ceil(progress * curvePoints.length)) - 1;
+    }
+    if (dashedLineRef.current) {
+      dashedLineRef.current.geometry.instanceCount = Math.ceil(dashedReveal.current.value * segments);
+    }
+
     if (isActive) {
       const position = curve.getPoint(progress);
       camera.position.x = THREE.MathUtils.damp(camera.position.x, (isMobile ? -1 : -2) + position.x, 4, delta);
@@ -103,37 +115,28 @@ const Timeline = ({ progress }: { progress: number }) => {
       }, 0);
     }
 
+    gsap.killTweensOf(dashedReveal.current);
     if (isActive) {
-      let i = 0;
-      clearInterval(intervalRef.current!);
-      setTimeout(() => {
-        intervalRef.current = setInterval(() => {
-          const p = i++ / 100;
-          setVisibleDashedCurvePoints(curvePoints.slice(0, Math.max(1, Math.ceil(p * curvePoints.length))));
-          if (i > 100 && intervalRef.current) clearInterval(intervalRef.current);
-        }, 10);
-      }, 1000);
+      gsap.fromTo(dashedReveal.current, { value: 0 }, { value: 1, duration: 1, delay: 1, ease: 'none' });
     } else {
-      setVisibleDashedCurvePoints([]);
-      clearInterval(intervalRef.current!);
+      dashedReveal.current.value = 0;
     }
 
-    return () => clearInterval(intervalRef.current!);
+    return () => { tl.kill(); };
   }, [isActive]);
 
   return (
     <group position={[0, -0.1, -0.1]}>
-      <Line points={visibleCurvePoints} color="white" lineWidth={3} />
-      {visibleDashedCurvePoints.length > 0 && (
-        <Line
-          points={visibleDashedCurvePoints}
-          color="white"
-          lineWidth={0.5}
-          dashed
-          dashSize={0.25}
-          gapSize={0.25}
-        />
-      )}
+      <Line ref={solidLineRef} points={curvePoints} color="white" lineWidth={3} />
+      <Line
+        ref={dashedLineRef}
+        points={curvePoints}
+        color="white"
+        lineWidth={0.5}
+        dashed
+        dashSize={0.25}
+        gapSize={0.25}
+      />
       <group ref={groupRef}>
         {visibleTimelinePoints.map((point, i) => {
           const diff = Math.min(2 * Math.max(i - (progress * (timeline.length - 1)), 0), 1);
