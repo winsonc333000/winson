@@ -102,7 +102,7 @@ function loadAndApplyShader(mesh: THREE.Mesh, brushName: string): Promise<void> 
 // Registered as a GLTFLoader plugin so materials are applied during loading,
 // before the component first renders (no async flash of the fallback material).
 // Three.js GLTFLoader calls afterRoot() and awaits its result.
-function makeTiltBrushPlugin(_parser: unknown) {
+function makeTiltBrushPlugin() {
   return {
     name: 'TiltBrushPlainNames',
 

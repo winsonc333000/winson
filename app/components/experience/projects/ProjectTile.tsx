@@ -2,7 +2,6 @@ import { Edges, Text, TextProps, useTexture } from "@react-three/drei";
 import { ThreeEvent, useThree } from "@react-three/fiber";
 import gsap from "gsap";
 import React, { Suspense, useEffect, useMemo, useRef, useLayoutEffect } from "react";
-import { isMobile } from "react-device-detect";
 import * as THREE from "three";
 
 import { PROJECTS } from "@constants";
@@ -57,10 +56,12 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
 
   // Named refs — no longer relies on children index ordering
   const bgMeshRef = useRef<THREE.Mesh>(null);
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const edgesRef = useRef<any>(null);
   const titleRef = useRef<any>(null);
   const dateGroupRef = useRef<THREE.Group>(null);
   const textBoxRef = useRef<any>(null); // Text (drei) or THREE.Mesh (image)
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   const buttonRef = useRef<THREE.Group>(null);
   const hoveredRef = useRef(hovered);
   hoveredRef.current = hovered;
@@ -277,13 +278,12 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, on
       });
     };
 
-    let keyHandler: (e: KeyboardEvent) => void;
     const originalClose = close;
     const closeAndCleanup = () => {
       document.removeEventListener('keydown', keyHandler, { capture: true });
       originalClose();
     };
-    keyHandler = (e: KeyboardEvent) => {
+    const keyHandler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopImmediatePropagation();
         closeAndCleanup();
