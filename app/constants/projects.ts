@@ -6,7 +6,7 @@ export const PROJECTS: Project[] = [
     title: 'Digital Portfolio',
     date: 'Aug 2025',
     subtext: 'A digital portfolio showcasing all my design work and projects',
-    url: 'https://winsonc333000.wixsite.com/design',
+    url: '/Winson-Chen-Portfolio.pdf',
   },
   {
     title: 'Nike Jordan 4s Poster',
