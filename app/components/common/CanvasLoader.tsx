@@ -7,11 +7,15 @@ import gsap from "gsap";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 
-import { useThemeStore } from "@stores";
+import { useIsCollage, useThemeStore } from "@stores";
 
+import CollageAssets from "../collage/CollageAssets";
+import { PAPER } from "../collage/constants";
+import { tornClipPath } from "../collage/tornEdge";
 import Preloader from "./Preloader";
 import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
+import StyleToggle from "./StyleToggle";
 import ThemeSwitcher from "./ThemeSwitcher";
 import WarmUp from "./WarmUp";
 // import {Perf} from "r3f-perf"
@@ -21,6 +25,8 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const backgroundColor = useThemeStore((state) => state.theme.color);
   const { progress } = useProgress();
+  const collage = useIsCollage();
+  const [tornPath] = useState(() => tornClipPath(3));
   const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({
     position: "absolute",
     top: 0,
@@ -50,15 +56,19 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
 
   useGSAP(() => {
     gsap.to(ref.current, {
-      backgroundColor: backgroundColor,
+      backgroundColor: collage ? PAPER.cardboard : backgroundColor,
       duration: 1,
     });
+    // In the collage skin the canvas is see-through, showing the paper sheet
+    // behind it, so it drops the noise too.
+    const { backgroundImage, ...noiseLayout } = noiseOverlayStyle;
     gsap.to(canvasRef.current, {
-      backgroundColor: backgroundColor,
+      backgroundColor: collage ? 'rgba(0, 0, 0, 0)' : backgroundColor,
       duration: 1,
-      ...noiseOverlayStyle,
+      ...noiseLayout,
     });
-  }, [backgroundColor]);
+    gsap.set(canvasRef.current, { backgroundImage: collage ? 'none' : backgroundImage });
+  }, [backgroundColor, collage]);
 
   const noiseOverlayStyle = {
     backgroundBlendMode: "soft-light",
@@ -67,16 +77,31 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
     backgroundSize: "100px",
   };
 
+  // On desktop the canvas sits inset in a border; in the collage skin that
+  // border is the cardboard the torn page is pasted on.
+  const framed = canvasStyle.inset !== undefined;
+  const torn = collage && framed ? tornPath : undefined;
+
   return (
     <div className="h-[100dvh] wrapper relative">
       <div className="h-[100dvh] relative" ref={ref}>
+        {torn && (
+          <div className="collage-sheet-shadow" style={{ inset: canvasStyle.inset }}>
+            <div style={{ clipPath: torn }} />
+          </div>
+        )}
+        {collage && <div className="collage-sheet" style={{ inset: framed ? canvasStyle.inset : 0, clipPath: torn }} />}
         <Canvas className="base-canvas"
           flat
           shadows
-          style={canvasStyle}
+          style={{ ...canvasStyle, clipPath: torn }}
           ref={canvasRef}
           dpr={[1.5, 2]}>
           {/* <Perf/> */}
+          {/* Collage paints its paper inside WebGL so the canvas stays opaque; a
+              see-through canvas under the grain overlay flashed black in some
+              browsers while scrolling. */}
+          {collage && <color attach="background" args={[PAPER.paper]} />}
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
 
@@ -87,12 +112,20 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
 
             <Preload all />
             <WarmUp />
+            {collage && (
+              <Suspense fallback={null}>
+                <CollageAssets />
+                <WarmUp />
+              </Suspense>
+            )}
           </Suspense>
           <AdaptiveDpr pixelated/>
         </Canvas>
         <ProgressLoader progress={progress} />
+        {collage && <div className="collage-grain" />}
       </div>
       <ThemeSwitcher />
+      <StyleToggle />
       <ScrollHint />
     </div>
   );

@@ -1,11 +1,13 @@
 import { Text, useScroll, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { PROJECTS } from "@constants";
-import { usePortalStore, useScrollStore } from "@stores";
-import { useEffect, useRef } from "react";
+import { useIsCollage, usePortalStore, useScrollStore } from "@stores";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from 'three';
 import { useGLTF } from "@react-three/drei";
+import { PAPER } from "../collage/constants";
+import RansomLetter, { cutLetters } from "../collage/RansomLetter";
 import { extendLoader } from "../models/Encounter";
 import GridTile from "./GridTile";
 import Projects from "./projects";
@@ -18,6 +20,8 @@ const Experience = () => {
   const isActive = usePortalStore((state) => !!state.activePortalId);
   const preloadedRef = useRef(false);
   const setDeferredAssetsReady = useScrollStore((state) => state.setDeferredAssetsReady);
+  const collage = useIsCollage();
+  const collageCuts = useMemo(() => cutLetters('EXPERIENCE', 23), []);
 
   const fontProps = {
     font: "./soria-font.ttf",
@@ -59,6 +63,8 @@ const Experience = () => {
         text.position.y = THREE.MathUtils.damp(text.position.y, y, 7, delta);
         /* eslint-disable  @typescript-eslint/no-explicit-any */
         (text as any).fillOpacity = e;
+        // Paper letters can't fade, so they're pasted in by scale instead.
+        if (collage) text.scale.setScalar(Math.max(e, 0.001));
       });
     }
   });
@@ -67,6 +73,16 @@ const Experience = () => {
     const title = 'experience'.toUpperCase();
     return title.split('').map((char, i) => {
       const diff = isMobile ? 0.4 : 0.8;
+      if (collage) {
+        const cut = collageCuts[i];
+        return (
+          <group key={i} position={[i * diff, 2, 1]}>
+            <group rotation={[0, 0, cut.rotation]}>
+              <RansomLetter cut={cut} cell={isMobile ? 0.34 : 0.62} />
+            </group>
+          </group>
+        );
+      }
       return (
         <Text key={i} {...fontProps} position={[i * diff, 2, 1]}>{char}</Text>
       );
@@ -81,20 +97,21 @@ const Experience = () => {
       </mesh> */}
       <group rotation={[0, 0, Math.PI / 2]}>
         <group ref={titleRef} position={[isMobile ? -1.8 : -3.6, 2, -2]}>
-          {getTitle()}
+          {/* Collage letters load their own fonts; don't suspend the scene for them. */}
+          <Suspense fallback={null}>{getTitle()}</Suspense>
         </group>
 
         <group position={[0, -1, 0]} ref={groupRef}>
           <GridTile title='WORK AND EDUCATION'
             id="work"
-            color='#000000'
+            color={collage ? PAPER.charcoal : '#000000'}
             textAlign='left'
             position={new THREE.Vector3(isMobile ? -1 : -2, 0, isMobile ? 0.4 : 0)}>
             <Work/>
           </GridTile>
           <GridTile title='SIDE PROJECTS'
             id="projects"
-            color='#000000'
+            color={collage ? PAPER.charcoal : '#000000'}
             textAlign='right'
             position={new THREE.Vector3(isMobile ? 1 : 2, 0, 0)}>
             <Projects/>

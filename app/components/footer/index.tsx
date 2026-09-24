@@ -4,11 +4,15 @@ import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from "three";
+import { useIsCollage } from "@stores";
 import { FOOTER_LINKS } from "../../constants";
 import { FooterLink } from "../../types";
+import { PAPER } from "../collage/constants";
+import LabelText from "../collage/LabelText";
 
-const FooterLinkItem = ({ link }: { link: FooterLink }) => {
-  const textRef = useRef<THREE.Group>(null);
+const FooterLinkItem = ({ link, index }: { link: FooterLink; index: number }) => {
+  const textRef = useRef<THREE.Mesh>(null);
+  const collage = useIsCollage();
   const [hovered, setHovered] = useState(false);
   const onPointerOver = () => setHovered(true);
   const onPointerOut = () => setHovered(false);
@@ -74,7 +78,19 @@ const FooterLinkItem = ({ link }: { link: FooterLink }) => {
   useCursor(hovered);
 
   if (isMobile) {
-    return <Svg onClick={onClick} scale={0.0015} position={[0.1, 0.25, 0]} src={link.icon} />;
+    // The icons are drawn white; ink them on the collage's paper.
+    return <Svg onClick={onClick} scale={0.0015} position={[0.1, 0.25, 0]} src={link.icon}
+      fillMaterial={collage ? { color: PAPER.ink } : undefined} />;
+  }
+
+  if (collage) {
+    // Punched out on label-maker tape.
+    return (
+      <LabelText ref={textRef} {...fontProps} tape={index % 2 ? PAPER.red : PAPER.ink} seed={index + 7}
+        rotation={[0, 0, index % 2 ? 0.04 : -0.03]}>
+        {link.name.toUpperCase()}
+      </LabelText>
+    );
   }
 
   return (
@@ -102,7 +118,7 @@ const Footer = () => {
     return FOOTER_LINKS.map((link, i) => {
       return (
         <group key={i} position={[i * spacing, 0, 0]}>
-          <FooterLinkItem link={link}/>
+          <FooterLinkItem link={link} index={i}/>
         </group>
       );
     });

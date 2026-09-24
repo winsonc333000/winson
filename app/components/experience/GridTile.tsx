@@ -1,11 +1,14 @@
 
 import { Edges, MeshPortalMaterial, Text, TextProps, useScroll } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
-import { usePortalStore } from '@stores';
+import { useIsCollage, usePortalStore } from '@stores';
 import gsap from "gsap";
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { isMobile } from 'react-device-detect';
 import * as THREE from 'three';
+import { PENCIL_FONT, PAPER } from '../collage/constants';
+import Decoration from '../collage/Decoration';
+import { PaperScrap, Tape } from '../collage/PaperScrap';
 import WarmUp from '../common/WarmUp';
 import { TriangleGeometry } from './Triangle';
 
@@ -32,6 +35,10 @@ const GridTile = (props: GridTileProps) => {
   const isActive = usePortalStore((state) => state.activePortalId === id);
   const activePortalId = usePortalStore((state) => state.activePortalId);
   const data = useScroll();
+  const collage = useIsCollage();
+  // Desktop tiles become polaroids pasted in at a slight angle. Mobile tiles are
+  // triangles, so they only swap their outline to ink.
+  const polaroid = collage && !isMobile;
 
   useEffect(() => {
     // Hanlde the hover box and title animation for mobile.
@@ -222,25 +229,68 @@ const GridTile = (props: GridTileProps) => {
   return (
     <mesh ref={gridRef}
       position={position}
+      // Shrunk a little so the two frames don't overlap. Tilting the tiles made
+      // their photos cross at the seam and z-fight.
+      scale={polaroid ? 0.9 : 1}
       onClick={portalInto}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}>
       { getGeometry() }
       <group>
-        <mesh position={[0, 0, -0.01]} ref={hoverBoxRef} scale={[0, 0, 0]}>
-          <boxGeometry args={[4, 4, 0.5]}/>
-          <meshPhysicalMaterial
-            color="#444"
-            transparent={true}
-            opacity={0.3}
-          />
-          <Edges color="white" lineWidth={3}/>
-        </mesh>
+        {polaroid ? (
+          // The photo lifts on hover; this is its shadow left on the page below.
+          <Decoration>
+            <mesh position={[0.3, -0.6, -0.48]} ref={hoverBoxRef} scale={[0, 0, 0]}>
+              <planeGeometry args={[4.5, 5.1]}/>
+              <meshBasicMaterial color="#2a1e12" transparent opacity={0.28} depthWrite={false}/>
+            </mesh>
+          </Decoration>
+        ) : (
+          <mesh position={[0, 0, -0.01]} ref={hoverBoxRef} scale={[0, 0, 0]}>
+            <boxGeometry args={[4, 4, 0.5]}/>
+            <meshPhysicalMaterial
+              color="#444"
+              transparent={true}
+              opacity={0.3}
+            />
+            <Edges color="white" lineWidth={3}/>
+          </mesh>
+        )}
+        {/* Work is a polaroid; side projects sit on a torn black card with a
+            chalk caption, so the two tiles aren't the same frame twice. */}
+        {/* Only the photo itself is clickable; the frames are decoration. */}
+        {polaroid && id === 'work' && (
+          <Decoration>
+          <PaperScrap width={4.5} height={5.1} seed={31} color={PAPER.white} position={[0, -0.33, -0.02]}>
+            <Suspense fallback={null}>
+              <Text font={PENCIL_FONT} fontSize={0.38} color={PAPER.ink} position={[0, -2.2, 0]}
+                anchorX="center" anchorY="middle" rotation={[0, 0, -0.02]}>
+                work &amp; education
+              </Text>
+            </Suspense>
+            <Tape width={1.5} seed={2} position={[-1.9, 2.5, 0.03]} rotation={[0, 0, 0.75]} />
+            <Tape width={1.5} seed={3} position={[1.9, 2.5, 0.03]} rotation={[0, 0, -0.75]} />
+          </PaperScrap>
+          </Decoration>
+        )}
+        {polaroid && id !== 'work' && (
+          <Decoration>
+          <PaperScrap width={4.7} height={5.2} seed={32} torn color={PAPER.charcoal} position={[0, -0.36, -0.05]}>
+            <Suspense fallback={null}>
+              <Text font={PENCIL_FONT} fontSize={0.38} color={PAPER.paper} position={[0, -2.25, 0]}
+                anchorX="center" anchorY="middle" rotation={[0, 0, 0.03]}>
+                side projects
+              </Text>
+            </Suspense>
+            <Tape width={1.8} seed={5} position={[0, 2.62, 0.03]} rotation={[0, 0, 0.04]} />
+          </PaperScrap>
+          </Decoration>
+        )}
         <Text position={[0, -1.8, 0.4]} {...fontProps} ref={titleRef}>
           {title}
         </Text>
       </group>
-      {!activePortalId && <Edges color="white" lineWidth={2} depthTest={false} renderOrder={1} />}
+      {!activePortalId && !polaroid && <Edges color={collage ? PAPER.ink : "white"} lineWidth={2} depthTest={false} renderOrder={1} />}
       <MeshPortalMaterial ref={portalRef} blend={0} resolution={0} blur={0}>
         <color attach="background" args={[color]} />
         {children}

@@ -46,12 +46,45 @@ const WarmUp = () => {
       }
     });
 
+    // compile/initTexture don't upload vertex buffers, so the first scroll past
+    // each section used to stall on bufferData. Drawing the whole scene once,
+    // with frustum culling off, into a throwaway 1x1 target uploads every
+    // geometry — including troika text that finished typesetting after this
+    // effect ran — and compiles any program the passes above missed. Hidden
+    // objects are shown for this draw too (as <Preload all> does), since
+    // sections that reveal on scroll would otherwise compile on first sight.
+    const drawEverythingOnce = () => {
+      const culled: THREE.Object3D[] = [];
+      const hidden: THREE.Object3D[] = [];
+      scene.traverse((object) => {
+        if (object.frustumCulled) {
+          object.frustumCulled = false;
+          culled.push(object);
+        }
+        if (!object.visible) {
+          object.visible = true;
+          hidden.push(object);
+        }
+      });
+      const warmTarget = new THREE.WebGLRenderTarget(1, 1);
+      const prev = gl.getRenderTarget();
+      gl.setRenderTarget(warmTarget);
+      gl.render(scene, camera);
+      gl.setRenderTarget(prev);
+      warmTarget.dispose();
+      culled.forEach((object) => { object.frustumCulled = true; });
+      hidden.forEach((object) => { object.visible = false; });
+    };
+
     // Upload one texture per frame so the loader animation keeps moving.
     const queue = [...textures];
     const uploadNext = () => {
       if (cancelled) return;
       const texture = queue.shift();
-      if (!texture) return;
+      if (!texture) {
+        drawEverythingOnce();
+        return;
+      }
       gl.initTexture(texture);
       frame = requestAnimationFrame(uploadNext);
     };

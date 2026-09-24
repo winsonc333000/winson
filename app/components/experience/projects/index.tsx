@@ -4,7 +4,9 @@ import gsap from "gsap";
 import { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import * as THREE from "three";
-import { usePortalStore } from "@stores";
+import { useIsCollage, usePortalStore } from "@stores";
+import { PAPER, PORTAL_SKY } from "../../collage/constants";
+import Sparkles from "../../collage/Sparkles";
 import { Encounter } from "../../models/Encounter";
 import ProjectsCarousel from "./ProjectsCarousel";
 import { TouchPanControls } from "./TouchPanControls";
@@ -13,6 +15,9 @@ const Projects = () => {
   const { camera } = useThree();
   const isActive = usePortalStore((state) => state.activePortalId === "projects");
   const data = useScroll();
+  // The collage skin paints this page black card with white-ink stars.
+  const collage = useIsCollage();
+  const sky = collage ? PAPER.charcoal : '#000000';
 
   useEffect(() => {
     // Hide scrollbar when active.
@@ -37,9 +42,11 @@ const Projects = () => {
 
   return (
     <group>
-      <color attach="background" args={['#000000']} />
-      <fog attach="fog" args={["#000000", 35, 130]} />
-      <Stars radius={200} depth={100} count={5000} factor={10} saturation={10} fade={true} speed={1} />
+      <color attach="background" args={[sky]} />
+      <fog attach="fog" args={[sky, 35, 130]} />
+      {collage
+        ? <Sparkles layout={PORTAL_SKY} count={350} seed={22} color={PAPER.paper} size={[0.6, 2.6]} />
+        : <Stars radius={200} depth={100} count={5000} factor={10} saturation={10} fade={true} speed={1} />}
       <ambientLight intensity={0.2} />
       <hemisphereLight args={["#c8d0d8", "#909aaa", 0.3]} />
       <directionalLight castShadow position={[5, 20, 8]} intensity={0.2} color="#f0ece8" shadow-mapSize={[2048, 2048]} />

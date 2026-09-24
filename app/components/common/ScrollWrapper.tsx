@@ -5,19 +5,22 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { isMobile } from "react-device-detect";
 import * as THREE from "three";
 
-import { usePortalStore, useScrollStore } from "@stores";
+import { useIsCollage, usePortalStore, useScrollStore } from "@stores";
 
 const ScrollWrapper = (props: { children: React.ReactNode | React.ReactNode[]}) => {
   const { camera } = useThree();
   const data = useScroll();
   const isActive = usePortalStore((state) => !!state.activePortalId);
   const setScrollProgress = useScrollStore((state) => state.setScrollProgress);
+  const collage = useIsCollage();
 
   useFrame((state, delta) => {
     if (data) {
       const a = data.range(0, 0.3);
       const b = data.range(0.3, 0.5);
-      const d = data.range(0.85, 0.18);
+      // The collage footer is framed a little higher, so its pull-back stops
+      // short and finishes exactly at the end of the scroll.
+      const d = collage ? data.range(0.85, 0.15) * 0.8 : data.range(0.85, 0.18);
 
       if (!isActive) {
         camera.rotation.x = THREE.MathUtils.damp(camera.rotation.x, -0.5 * Math.PI * a, 5, delta);

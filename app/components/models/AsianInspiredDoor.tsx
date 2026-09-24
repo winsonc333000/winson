@@ -97,7 +97,10 @@ const AsianInspiredDoor = (props: JSX.IntrinsicElements['group']) => {
     <group {...props} dispose={null}>
       <mesh position={[fullCenter.x, fullCenter.y, fullCenter.z]}>
         <boxGeometry args={[fullSize.x, fullSize.y, fullSize.z]} />
-        <meshBasicMaterial transparent opacity={0} />
+        {/* Only here to carry the outline. No depth write: an invisible box
+            that writes depth hides whatever draws after it, which blanked the
+            words in the passage below until the camera was inside the door. */}
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         <Edges color="white" lineWidth={1} depthTest={false} renderOrder={1} />
       </mesh>
       <primitive object={frame} />

@@ -2,11 +2,16 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { isMobile } from 'react-device-detect';
 
+import { useIsCollage } from '@stores';
+
 /**
  * Partially AI Generated
  */
 const ProgressLoader = ({ progress }: { progress: number }) => {
   const strokeWidth = 3;
+  // The collage skin draws the frame as a dashed "cut here" line in ink.
+  const collage = useIsCollage();
+  const ink = '#1c1a17';
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -67,10 +72,10 @@ const ProgressLoader = ({ progress }: { progress: number }) => {
             style={{
               height: '2px',
               width: `${progress}%`,
-              backgroundColor: 'white',
+              backgroundColor: collage ? ink : 'white',
             }}
           />
-          <div className='mt-2 text-white'>
+          <div className='mt-2' style={{ color: collage ? ink : 'white' }}>
             {`${progress.toFixed(2)}%`}
           </div>
         </div>
@@ -89,6 +94,20 @@ const ProgressLoader = ({ progress }: { progress: number }) => {
         viewBox={`0 0 ${svgWidth} ${svgHeight}`} // Set viewBox to match the SVG size
         style={{ display: svgWidth > 0 && svgHeight > 0 ? 'block' : 'none' }} // Hide if size is zero
       >
+        {collage ? (
+          <>
+            <defs>
+              <mask id="cut-line-progress">
+                <rect x={halfStroke} y={halfStroke} width={rectWidth} height={rectHeight}
+                  fill="none" strokeWidth={strokeWidth} stroke="white"
+                  style={{ strokeDasharray: perimeter, strokeDashoffset, transition: 'stroke-dashoffset 1s ease-in-out' }} />
+              </mask>
+            </defs>
+            <rect x={halfStroke} y={halfStroke} width={rectWidth} height={rectHeight}
+              fill="none" strokeWidth={1.5} stroke={ink} strokeOpacity={0.6} strokeDasharray="10 7"
+              mask="url(#cut-line-progress)" />
+          </>
+        ) : (<>
         {/* Background track for the rectangle */}
         <rect
           x={halfStroke} // Position x considering half stroke width
@@ -115,6 +134,7 @@ const ProgressLoader = ({ progress }: { progress: number }) => {
             transition: 'stroke-dashoffset 1s ease-in-out', // Smooth transition effect
           }}
         />
+        </>)}
       </svg>
     </div>
   );

@@ -83,3 +83,172 @@ body {
 .close:after {
   transform: rotate(-45deg);
 }
+
+/* ---------- Collage / scrapbook skin ---------- */
+
+@font-face {
+  font-family: 'Collage Abril';
+  src: url('/collage/fonts/AbrilFatface-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Collage Ultra';
+  src: url('/collage/fonts/Ultra-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Collage Elite';
+  src: url('/collage/fonts/SpecialElite-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+  --font-collage-abril: 'Collage Abril', serif;
+  --font-collage-ultra: 'Collage Ultra', serif;
+  --font-collage-elite: 'Collage Elite', monospace;
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --paper-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='4' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .34 0 0 0 0 .2 0 0 0 .5 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+}
+
+/* The toggle: a strip of ransom letters taped to the corner of the page. */
+.style-toggle {
+  position: fixed;
+  top: 1.75rem;
+  right: 1.75rem;
+  z-index: 30;
+  padding: 10px 8px 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(-3deg);
+  transition: transform 0.25s cubic-bezier(.3, 1.6, .5, 1);
+  filter: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.35));
+}
+.style-toggle:hover {
+  transform: rotate(-1deg) translateY(-2px) scale(1.04);
+}
+.style-toggle:focus-visible {
+  outline: 2px dashed #d39b22;
+  outline-offset: 4px;
+}
+.style-toggle__letters {
+  display: flex;
+  align-items: center;
+}
+.style-toggle__letter {
+  display: inline-block;
+  min-width: 1.15em;
+  padding: 4px 5px 3px;
+  margin: 0 -1px;
+  font-size: 17px;
+  line-height: 1;
+  text-align: center;
+  transform: rotate(var(--r)) translateY(var(--y));
+  transition: transform 0.25s;
+}
+.style-toggle:hover .style-toggle__letter:nth-child(odd) {
+  transform: rotate(calc(var(--r) * -1)) translateY(var(--y));
+}
+.style-toggle__space {
+  width: 6px;
+}
+.style-toggle__tape {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 46px;
+  height: 14px;
+  transform: translateX(-50%) rotate(4deg);
+  background: rgba(233, 223, 196, 0.82);
+  clip-path: polygon(0 12%, 4% 0, 9% 14%, 100% 0, 96% 50%, 100% 100%, 6% 88%, 2% 100%, 0 70%);
+  z-index: 1;
+}
+@media (max-width: 768px) {
+  .style-toggle {
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+  .style-toggle__letter {
+    font-size: 12px;
+  }
+}
+
+/* The sheet that sweeps across while the skins swap. */
+.page-turn {
+  position: fixed;
+  inset: -4vh -3vw;
+  z-index: 50;
+  pointer-events: none;
+  background-color: #efe9dc;
+  background-image: var(--paper-noise), var(--paper-mottle);
+  background-size: 180px, cover;
+}
+.page-turn--classic {
+  background-color: #111;
+  background-image: var(--paper-noise), radial-gradient(1.5px 1.5px at 20% 30%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 70% 60%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 40% 80%, #fff 50%, transparent 51%);
+  background-size: 180px, 220px 220px, 160px 160px, 260px 260px;
+}
+.page-turn__stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(46vw, 46vh);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  background: #1c1a17;
+  -webkit-mask: url('/collage/koi.webp') center / contain no-repeat;
+  mask: url('/collage/koi.webp') center / contain no-repeat;
+  opacity: 0.85;
+}
+/* The same koi, outlined in light on black, for the way back to night. */
+.page-turn--classic .page-turn__stamp {
+  background: #e8e2d4;
+  -webkit-mask-image: url('/collage/koi-night.webp');
+  mask-image: url('/collage/koi-night.webp');
+  opacity: 0.8;
+}
+
+/* Paper backing the canvas; the canvas itself is transparent in this skin. */
+.collage-sheet {
+  position: absolute;
+  background-color: #efe9dc;
+  background-image: var(--paper-noise), var(--paper-mottle),
+    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(120, 85, 40, 0.22) 100%);
+  background-size: 180px, cover, cover;
+}
+.collage-sheet-shadow {
+  position: absolute;
+  transform: translate(4px, 7px);
+  filter: blur(3px);
+}
+.collage-sheet-shadow > div {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 25, 10, 0.55);
+}
+
+/* Fibre, mottling and a worn edge printed over everything, so the WebGL layers
+   read as paper too. Plain alpha, no blend mode: blending over a WebGL canvas
+   is costly and has flickered in some browsers. */
+.collage-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: var(--paper-noise), var(--paper-mottle),
+    radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(110, 75, 35, 0.18) 100%);
+  background-size: 180px, cover, cover;
+  opacity: 0.55;
+}
+
+[data-style="collage"] body {
+  background: #8c7152;
+}
+[data-style="collage"] .scroll-hint span {
+  font-family: var(--font-collage-elite);
+  letter-spacing: 0.1em;
+}
+[data-style="collage"] [id^="footer-link-"] {
+  color: #1c1a17;
+  font-family: var(--font-collage-elite);
+}

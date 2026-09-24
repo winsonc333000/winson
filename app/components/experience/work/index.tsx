@@ -1,8 +1,10 @@
 import { ScrollControls } from "@react-three/drei";
-import { usePortalStore, useScrollStore } from "@stores";
+import { useIsCollage, usePortalStore, useScrollStore } from "@stores";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Stars } from "@react-three/drei";
+import { PAPER, PORTAL_SKY } from "../../collage/constants";
+import Sparkles from "../../collage/Sparkles";
 import { ChineseOldPlace } from "../../models/ChineseOldPlace";
 import Timeline from "./Timeline";
 
@@ -12,6 +14,9 @@ const Work = () => {
   // subscribing to the whole store re-rendered this entire portal scene each time.
   const scrollProgress = useScrollStore((state) => isActive ? state.scrollProgress : 0);
   const setScrollProgress = useScrollStore((state) => state.setScrollProgress);
+  // The collage skin paints this page black card with white-ink stars.
+  const collage = useIsCollage();
+  const sky = collage ? PAPER.charcoal : '#000000';
 
   // Store refs to the scroll wrappers so we don't rely on fragile z-index
   // style queries that break when React re-renders and overwrites manual changes.
@@ -61,9 +66,11 @@ const Work = () => {
 
   return (
     <group>
-      <color attach="background" args={['#000000']} />
-      <fog attach="fog" args={['#000000', 200, 600]} />
-      <Stars radius={200} depth={100} count={5000} factor={10} saturation={10} fade={true} speed={1} />
+      <color attach="background" args={[sky]} />
+      <fog attach="fog" args={[sky, 200, 600]} />
+      {collage
+        ? <Sparkles layout={PORTAL_SKY} count={350} seed={21} color={PAPER.paper} size={[0.6, 2.6]} />
+        : <Stars radius={200} depth={100} count={5000} factor={10} saturation={10} fade={true} speed={1} />}
       <hemisphereLight args={['#ffb38a', '#0c1730', 0.45]} />
       <directionalLight position={[-12, 10, 8]} intensity={1.35} color="#ff5d4d" />
       <directionalLight position={[14, 8, 16]} intensity={1.1} color="#5a7cff" />
