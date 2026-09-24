@@ -17,7 +17,8 @@ interface StyleStore {
 export const useStyleStore = create<StyleStore>()(
   persist(
     (set) => ({
-      style: 'classic',
+      // The scrapbook is the site's front door; the night sky is one click away.
+      style: 'collage',
       setStyle: (style) => set(() => ({ style })),
       collageReady: false,
       setCollageReady: (collageReady) => set(() => ({ collageReady })),
@@ -25,6 +26,11 @@ export const useStyleStore = create<StyleStore>()(
     {
       name: "style-storage",
       partialize: (state) => ({ style: state.style }),
+      // Version 0 stored 'classic' for everyone who visited before the
+      // scrapbook became the default. Start them all on the scrapbook once;
+      // choices made from here on are kept.
+      version: 1,
+      migrate: () => ({ style: 'collage' as SiteStyle }),
     }
   )
 );
