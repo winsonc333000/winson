@@ -115,7 +115,8 @@ const HeroWall = ({ spread }: { spread: number }) => {
         <Tape width={3} seed={2} position={[-4.6, 3.5, 0]} rotation={[0, 0, 0.7]} />
         <Tape width={3} seed={3} position={[4.6, 3.5, 0]} rotation={[0, 0, -0.7]} />
       </PhotoScrap>
-      <PhotoScrap name="trees" width={13} position={[x(6), -15, 0.3]} rotation={[0, 0, -0.05]}>
+      {/* Its foggy top can sit under the title; the trees and figure stay above the clouds. */}
+      <PhotoScrap name="trees" width={13} position={[x(3), -9.5, 0.3]} rotation={[0, 0, -0.05]}>
         <Tape width={3.2} seed={4} position={[0, 5.6, 0]} rotation={[0, 0, -0.04]} />
       </PhotoScrap>
       {/* Top corner: the title covers the middle band. */}
@@ -133,14 +134,12 @@ const HeroWall = ({ spread }: { spread: number }) => {
 const DESCENT: { name: PhotoName; width: number; position: [number, number, number] }[] = [
   // Top to bottom: the tower sketch, the skyscrapers, then the bridge.
   // Kept below y≈-9 so none show from the hero.
-  // The tower sketch is tall (height ≈ 2.5x width), so its centre sits low
-  // enough that its top stays out of the hero. It stands just beside the door;
-  // the skyscrapers and bridge are small and further out, so they read as
-  // further away.
-  { name: 'sketchTowers', width: 13, position: [-9.5, -24, 0] },
+  // The tower sketch stands just beside the door, with the skyscrapers and
+  // bridge further out.
+  { name: 'sketchTowers', width: 12.25, position: [-9.5, -24, 7] },
   { name: 'angelWings', width: 4.5, position: [6, -12, -8] },
-  { name: 'petronas', width: 2.8, position: [15, -30, -6] },
-  { name: 'bridge', width: 4.5, position: [16, -31, 5] },
+  { name: 'petronas', width: 4.6, position: [15, -30, -6] },
+  { name: 'bridge', width: 7.5, position: [16, -31, 5] },
 ];
 
 const DescentStickers = () => {
@@ -181,7 +180,7 @@ const DoorFloor = ({ spread }: { spread: number }) => {
         position={[x(-31), -6, -1]} rotation={[0, 0, -0.05]}>
         {/* Ink drawings doodled over the ruled lines. */}
         <InkStamp name="phoenix" width={7.5} position={[1.6, 5.2, 0]} rotation={[0, 0, -0.32]} opacity={0.72} />
-        <InkStamp name="inkEye" width={2.6} position={[-3.3, 0.6, 0]} rotation={[0, 0, 0.55]} opacity={0.9} />
+        <InkStamp name="baroque" width={2.6} position={[-3.3, 0.6, 0]} rotation={[0, 0, 0.35]} opacity={0.8} />
         <InkStamp name="keySmall" width={2.2} position={[3.4, -1.8, 0]} rotation={[0, 0, 1.9]} opacity={0.6} />
         <InkStamp name="lantern" width={1.5} position={[-4.6, -4.2, 0]} rotation={[0, 0, 0.18]} opacity={0.95} />
         <InkStamp name="fleur" width={3.4} position={[0.2, -4.6, 0]} rotation={[0, 0, -0.42]} opacity={0.55} />
@@ -230,7 +229,7 @@ const DoorFloor = ({ spread }: { spread: number }) => {
       <InkStamp name="vine" width={5} position={[x(-38), 0, 0]} />
       <InkStamp name="key" width={4} position={[x(5), 4, 0.1]} rotation={[0, 0, 0.5]} />
       <InkStamp name="keySmall" width={2.2} position={[x(-4.5), 3, 0.1]} rotation={[0, 0, -1]} />
-      <InkStamp name="inkEye" width={7} position={[x(-12), 1.5, 0.05]} rotation={[0, 0, -0.08]} opacity={0.85} />
+      <InkStamp name="jojo" width={5} position={[x(-8.5), 0.5, 0.1]} rotation={[0, 0, -0.06]} opacity={0.85} />
       <StarryNightTiles position={[x(11), 3.5, 0.5]} rotation={[0, 0, -0.08]} />
       <Caption position={[x(-9), 7.2, 0.5]} rotation={[0, 0, 0.06]} size={0.6}>fig. 02 — the door</Caption>
       <PhotoScrap name="gogglesCamera" width={6.5} position={[x(-24), 2, 0.3]} rotation={[0, 0, 0.07]} signature="w.c.">

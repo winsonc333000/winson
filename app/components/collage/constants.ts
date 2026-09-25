@@ -23,6 +23,10 @@ export const PAPER = {
   tape: '#e9dfc4',
 };
 
+// Drop shadows are pushed back in depth, so they lose to the paper they sit
+// under even where a page is seen edge-on from far away.
+export const SHADOW_DEPTH_OFFSET = { polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 4 };
+
 // Letters are cut from whatever magazine was lying around, so every tile picks
 // its own face. Troika needs ttf/otf/woff, not woff2.
 export const BLACKLETTER_FONT = '/collage/fonts/UnifrakturMaguntia-Book.ttf';
@@ -64,8 +68,6 @@ export const STAMPS = {
   inkEye: '/collage/ink-eye.webp',
   // Line art only, printed in red ink.
   jojo: '/collage/jojo.webp',
-  // Only in the well; koi-night.webp is used by the page-turn in CSS.
-  koi: '/collage/koi.webp',
 } as const;
 
 // Photo scraps and stickers keep their own pixels inside their cut outline.

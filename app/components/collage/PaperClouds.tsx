@@ -5,7 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 
-import { PAPER } from "./constants";
+import { PAPER, SHADOW_DEPTH_OFFSET } from "./constants";
 import { cloudGeometry } from "./geometry";
 import { grainTexture } from "./textures";
 
@@ -35,7 +35,7 @@ const CLOUDS: CloudSpec[] = [
 ];
 
 const backMaterial = new THREE.MeshBasicMaterial({ color: PAPER.newsprint });
-const shadowMaterial = new THREE.MeshBasicMaterial({ color: '#2a1e12', transparent: true, opacity: 0.18, depthWrite: false });
+const shadowMaterial = new THREE.MeshBasicMaterial({ color: '#2a1e12', transparent: true, opacity: 0.18, depthWrite: false, ...SHADOW_DEPTH_OFFSET });
 // Built on first use: the grain texture needs a DOM canvas.
 let frontMaterial: THREE.MeshBasicMaterial | null = null;
 const getFrontMaterial = () => (frontMaterial ??= new THREE.MeshBasicMaterial({ color: PAPER.white, map: grainTexture() }));

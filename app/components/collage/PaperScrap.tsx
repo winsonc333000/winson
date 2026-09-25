@@ -5,7 +5,7 @@ import { ThreeElements } from "@react-three/fiber";
 import { useLayoutEffect, useMemo } from "react";
 import * as THREE from "three";
 
-import { PAPER, PENCIL_FONT, PHOTOS, PhotoName, STAMPS, StampName } from "./constants";
+import { PAPER, PENCIL_FONT, PHOTOS, PhotoName, SHADOW_DEPTH_OFFSET, STAMPS, StampName } from "./constants";
 import { cutPaperGeometry } from "./geometry";
 import { grainTexture, halftoneTexture, ruledTexture } from "./textures";
 
@@ -19,11 +19,17 @@ const PATTERNS = {
 
 export type PaperPattern = keyof typeof PATTERNS;
 
+// Gap between a scrap and what's laid on it (or its shadow under it). The door
+// page is seen from 60-80 units away while the camera tips down, where a
+// thinner gap is only a depth step or two: the shadow then z-fights through the
+// paper above it and flickers dark, worst on the big pale sheets.
+const LAYER = 0.02;
+
 // Light comes from the top left, so every cut-out drops its shadow down-right,
 // further for bigger pieces but never so far it detaches from them.
 const shadowOffset = (size: number) => {
   const d = Math.min(size * 0.025, 0.45);
-  return [d * 0.7, -d, -0.004] as [number, number, number];
+  return [d * 0.7, -d, -LAYER] as [number, number, number];
 };
 
 const shadowMaterial = new THREE.MeshBasicMaterial({
@@ -31,6 +37,7 @@ const shadowMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   opacity: 0.22,
   depthWrite: false,
+  ...SHADOW_DEPTH_OFFSET,
 });
 
 interface PaperScrapProps extends GroupProps {
@@ -68,12 +75,12 @@ export const PaperScrap = ({
         <meshBasicMaterial color={color} map={texture()} />
       </mesh>
       {margin && (
-        <mesh position={[-width * 0.32, 0, 0.003]}>
+        <mesh position={[-width * 0.32, 0, LAYER / 2]}>
           <planeGeometry args={[Math.max(0.03, width * 0.006), height * 0.98]} />
           <meshBasicMaterial color="#d0413b" transparent opacity={0.7} depthWrite={false} />
         </mesh>
       )}
-      <group position={[0, 0, 0.006]}>{children}</group>
+      <group position={[0, 0, LAYER]}>{children}</group>
     </group>
   );
 };
@@ -150,7 +157,7 @@ export const PhotoScrap = ({ name, width, signature, children, ...props }: Photo
   const texture = useCrispTexture(PHOTOS[name]);
   const height = width * aspectOf(texture);
   const shadow = useMemo(() => new THREE.MeshBasicMaterial({
-    map: texture, color: '#000', transparent: true, opacity: 0.28, depthWrite: false,
+    map: texture, color: '#000', transparent: true, opacity: 0.28, depthWrite: false, ...SHADOW_DEPTH_OFFSET,
   }), [texture]);
   const material = useMemo(() => inkPrintMaterial(texture), [texture]);
   return (
@@ -168,7 +175,7 @@ export const PhotoScrap = ({ name, width, signature, children, ...props }: Photo
           {signature}
         </Text>
       )}
-      <group position={[0, 0, 0.006]}>{children}</group>
+      <group position={[0, 0, LAYER]}>{children}</group>
     </group>
   );
 };

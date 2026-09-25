@@ -76,7 +76,7 @@ export const TunnelRings = () => (
 // spiral down with the twist. Those rings are all light paper, so dark ink reads.
 const SPIRAL: { name: StampName; width: number }[] = [
   { name: 'key', width: 0.42 },
-  { name: 'inkEye', width: 0.95 },
+  { name: 'dragon', width: 0.9 },
   { name: 'fleur', width: 0.7 },
   { name: 'lantern', width: 0.6 },
   { name: 'keySmall', width: 0.3 },
@@ -113,9 +113,6 @@ export const KoiPond = () => {
     <group position={[0, -13.8, -0.69]}>
       <group ref={groupRef}>
         <PhotoScrap name="koiPrint" width={4.4} rotation={[-Math.PI / 2, 0, 0]} />
-        {/* Loose ink koi circling the print. */}
-        <InkStamp name="koi" width={2.4} color={PAPER.ink} opacity={0.75}
-          position={[3.4, 0.05, 0]} rotation={[-Math.PI / 2, 0, 2.2]} />
       </group>
     </group>
   );
