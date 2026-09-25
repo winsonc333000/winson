@@ -133,10 +133,11 @@ const HeroWall = ({ spread }: { spread: number }) => {
 const DESCENT: { name: PhotoName; width: number; position: [number, number, number] }[] = [
   // Top to bottom: the tower sketch, the skyscrapers, then the bridge.
   // Kept below y≈-9 so none show from the hero.
-  // The tower sketch is tall (height ≈ 2x width), so its centre sits low enough
-  // that its top stays out of the hero. The skyscrapers and bridge are small
-  // and further down, so they read as further away.
-  { name: 'sketchTowers', width: 11, position: [-14, -24, -2] },
+  // The tower sketch is tall (height ≈ 2.5x width), so its centre sits low
+  // enough that its top stays out of the hero. It stands just beside the door;
+  // the skyscrapers and bridge are small and further out, so they read as
+  // further away.
+  { name: 'sketchTowers', width: 13, position: [-9.5, -24, 0] },
   { name: 'angelWings', width: 4.5, position: [6, -12, -8] },
   { name: 'petronas', width: 2.8, position: [15, -30, -6] },
   { name: 'bridge', width: 4.5, position: [16, -31, 5] },

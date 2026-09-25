@@ -115,6 +115,28 @@ export const InkStamp = ({ name, width, color = PAPER.ink, opacity = 0.88, ...pr
   );
 };
 
+const INK = new THREE.Color(PAPER.ink);
+const INK_PAPER = new THREE.Color(PAPER.paper);
+
+// Reprints a photo as ink on paper: colour dropped, the darks pooled into
+// solid ink and the highlights left as bare paper, with a little grain.
+const inkPrintMaterial = (map: THREE.Texture) => {
+  const material = new THREE.MeshBasicMaterial({ map, transparent: true, alphaTest: 0.02 });
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.inkColor = { value: INK };
+    shader.uniforms.paperColor = { value: INK_PAPER };
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 inkColor;\nuniform vec3 paperColor;')
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        float tone = pow(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)), 1.0 / 2.2);
+        tone += (fract(sin(dot(vMapUv, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.06;
+        tone = smoothstep(0.1, 0.82, tone);
+        diffuseColor.rgb = mix(inkColor, paperColor, tone);`);
+  };
+  material.customProgramCacheKey = () => 'ink-print';
+  return material;
+};
+
 interface PhotoProps extends GroupProps {
   name: PhotoName;
   width: number;
@@ -122,21 +144,22 @@ interface PhotoProps extends GroupProps {
   signature?: string;
 }
 
-// A torn photo scrap. The shadow reuses the photo's alpha so it follows the tear.
+// A torn photo scrap, printed in ink. The shadow reuses the photo's alpha so it
+// follows the tear.
 export const PhotoScrap = ({ name, width, signature, children, ...props }: PhotoProps) => {
   const texture = useCrispTexture(PHOTOS[name]);
   const height = width * aspectOf(texture);
   const shadow = useMemo(() => new THREE.MeshBasicMaterial({
     map: texture, color: '#000', transparent: true, opacity: 0.28, depthWrite: false,
   }), [texture]);
+  const material = useMemo(() => inkPrintMaterial(texture), [texture]);
   return (
     <group {...props}>
       <mesh material={shadow} position={shadowOffset(Math.max(width, height))}>
         <planeGeometry args={[width, height]} />
       </mesh>
-      <mesh>
+      <mesh material={material}>
         <planeGeometry args={[width, height]} />
-        <meshBasicMaterial map={texture} transparent alphaTest={0.02} />
       </mesh>
       {signature && (
         <Text font={PENCIL_FONT} fontSize={width * 0.065} color={PAPER.graphite} fillOpacity={0.85}
