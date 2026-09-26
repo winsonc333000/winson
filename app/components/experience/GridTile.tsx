@@ -23,6 +23,27 @@ interface GridTileProps {
 
 const corner = new THREE.Vector3();
 
+// On a phone the two polaroids stack down the tall screen at under half size. The
+// tiles themselves stay put, since each portal's world is placed from its
+// tile: only the photo window and its frame shift, onto these centres
+// relative to the tile.
+const MOBILE_POLAROID_SCALE = 0.45;
+const MOBILE_POLAROID_OFFSET: Record<string, [number, number]> = {
+  work: [0.5, 1.29],
+  projects: [-0.5, -1.55],
+};
+const mobilePhotoGeometry = new Map<string, THREE.BufferGeometry>();
+const getMobilePhotoGeometry = (id: string) => {
+  let geometry = mobilePhotoGeometry.get(id);
+  if (!geometry) {
+    const [x, y] = MOBILE_POLAROID_OFFSET[id] ?? [0, 0];
+    const size = 4 * MOBILE_POLAROID_SCALE;
+    geometry = new THREE.PlaneGeometry(size, size).translate(x, y, 0);
+    mobilePhotoGeometry.set(id, geometry);
+  }
+  return geometry;
+};
+
 // TODO: Rename this
 const GridTile = (props: GridTileProps) => {
   const titleRef = useRef<THREE.Group>(null);
@@ -36,13 +57,14 @@ const GridTile = (props: GridTileProps) => {
   const activePortalId = usePortalStore((state) => state.activePortalId);
   const data = useScroll();
   const collage = useIsCollage();
-  // Desktop tiles become polaroids pasted in at a slight angle. Mobile tiles are
-  // triangles, so they only swap their outline to ink.
-  const polaroid = collage && !isMobile;
+  // In the collage skin the tiles become polaroids; the frames carry the titles.
+  const polaroid = collage;
+  const mobilePolaroid = polaroid && isMobile;
+  const [frameX, frameY] = mobilePolaroid ? MOBILE_POLAROID_OFFSET[id] ?? [0, 0] : [0, 0];
 
   useEffect(() => {
     // Hanlde the hover box and title animation for mobile.
-    if (isMobile && titleRef.current) {
+    if (isMobile && !polaroid && titleRef.current) {
       const isWork = id === 'work';
       gsap.to(titleRef.current, {
         fontSize: 0.13,
@@ -97,7 +119,7 @@ const GridTile = (props: GridTileProps) => {
 
   useFrame(() => {
     const d = data.range(0.95, 0.05);
-    if (isMobile && titleRef.current) {
+    if (isMobile && !polaroid && titleRef.current) {
       /* eslint-disable  @typescript-eslint/no-explicit-any */
       (titleRef.current as any).fillOpacity = d;
     }
@@ -218,6 +240,10 @@ const GridTile = (props: GridTileProps) => {
       return <planeGeometry args={[4, 4, 1]} />
     }
 
+    if (mobilePolaroid) {
+      return <primitive object={getMobilePhotoGeometry(id)} attach="geometry" />
+    }
+
     const isWork = id === 'work';
     const points = isWork ?
       [[-1, 2, 0], [-1, -2, 0], [3, -2, 0]] :
@@ -231,12 +257,12 @@ const GridTile = (props: GridTileProps) => {
       position={position}
       // Shrunk a little so the two frames don't overlap. Tilting the tiles made
       // their photos cross at the seam and z-fight.
-      scale={polaroid ? 0.9 : 1}
+      scale={polaroid && !isMobile ? 0.9 : 1}
       onClick={portalInto}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}>
       { getGeometry() }
-      <group>
+      <group position={[frameX, frameY, 0]} scale={mobilePolaroid ? MOBILE_POLAROID_SCALE : 1}>
         {polaroid ? (
           // The photo lifts on hover; this is its shadow left on the page below.
           <Decoration>
