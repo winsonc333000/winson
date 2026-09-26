@@ -23,14 +23,15 @@ interface GridTileProps {
 
 const corner = new THREE.Vector3();
 
-// On a phone the two polaroids stack down the tall screen at under half size. The
-// tiles themselves stay put, since each portal's world is placed from its
-// tile: only the photo window and its frame shift, onto these centres
-// relative to the tile.
-const MOBILE_POLAROID_SCALE = 0.45;
+// On a phone the two polaroids stack down the tall screen at about half size,
+// overlapping a little. The tiles themselves stay put, since each portal's
+// world is placed from its tile: only the photo window and its frame shift,
+// onto these centres relative to the tile. The scene inside is shrunk and
+// moved to match while previewed, and grows back as the portal is entered.
+const MOBILE_POLAROID_SCALE = 0.55;
 const MOBILE_POLAROID_OFFSET: Record<string, [number, number]> = {
-  work: [0.5, 1.29],
-  projects: [-0.5, -1.55],
+  work: [0.7, 1.07],
+  projects: [-0.7, -1.27],
 };
 const mobilePhotoGeometry = new Map<string, THREE.BufferGeometry>();
 const getMobilePhotoGeometry = (id: string) => {
@@ -50,6 +51,7 @@ const GridTile = (props: GridTileProps) => {
   const gridRef = useRef<THREE.Group>(null);
   const hoverBoxRef = useRef<THREE.Mesh>(null);
   const portalRef = useRef(null);
+  const portalWorldRef = useRef<THREE.Group>(null);
   const { title, textAlign, children, color, position, id } = props;
   const { camera } = useThree();
   const setActivePortal = usePortalStore((state) => state.setActivePortal);
@@ -61,9 +63,19 @@ const GridTile = (props: GridTileProps) => {
   const polaroid = collage;
   const mobilePolaroid = polaroid && isMobile;
   const [frameX, frameY] = mobilePolaroid ? MOBILE_POLAROID_OFFSET[id] ?? [0, 0] : [0, 0];
+  const previewScale = mobilePolaroid ? MOBILE_POLAROID_SCALE : 1;
+
+  // Slides the portal's world between its preview framing and full size.
+  const framePortalWorld = (entered: boolean, duration: number) => {
+    const world = portalWorldRef.current;
+    if (!world) return;
+    gsap.to(world.position, { x: entered ? 0 : frameX, y: entered ? 0 : frameY, duration });
+    gsap.to(world.scale, { x: entered ? 1 : previewScale, y: entered ? 1 : previewScale, z: entered ? 1 : previewScale, duration });
+  };
 
   useEffect(() => {
-    // Hanlde the hover box and title animation for mobile.
+    // Hanlde the hover box and title animation for mobile. Rerun on a skin
+    // change: the site opens on the collage, whose polaroids skip this.
     if (isMobile && !polaroid && titleRef.current) {
       const isWork = id === 'work';
       gsap.to(titleRef.current, {
@@ -78,7 +90,7 @@ const GridTile = (props: GridTileProps) => {
         duration: 0.5,
       });
     }
-  }, []);
+  }, [polaroid]);
 
   // The portal renders its whole scene into a full-canvas render target every
   // frame, but its material only samples the pixels under this tile. Scissor
@@ -141,6 +153,7 @@ const GridTile = (props: GridTileProps) => {
     // it to 2. rotation and position.y/z are handled by ScrollWrapper.
     gsap.to(camera.position, { x: 0, duration: 1 });
 
+    framePortalWorld(false, 1);
     gsap.to(portalRef.current, {
       blend: 0,
       duration: 1,
@@ -194,6 +207,7 @@ const GridTile = (props: GridTileProps) => {
     }
     handleEscape.current = (e: KeyboardEvent) => { if (e.key === 'Escape') exitPortalRef.current?.(true); };
     document.body.addEventListener('keydown', handleEscape.current);
+    framePortalWorld(true, 0.5);
     gsap.to(portalRef.current, {
       blend: 1,
       duration: 0.5,
@@ -319,7 +333,9 @@ const GridTile = (props: GridTileProps) => {
       {!activePortalId && !polaroid && <Edges color={collage ? PAPER.ink : "white"} lineWidth={2} depthTest={false} renderOrder={1} />}
       <MeshPortalMaterial ref={portalRef} blend={0} resolution={0} blur={0}>
         <color attach="background" args={[color]} />
-        {children}
+        <group ref={portalWorldRef} position={[frameX, frameY, 0]} scale={previewScale}>
+          {children}
+        </group>
         <WarmUp />
       </MeshPortalMaterial>
     </mesh>
