@@ -30,9 +30,12 @@ const ScrollWrapper = (props: { children: React.ReactNode | React.ReactNode[]}) 
         setScrollProgress(data.range(0, 1));
       }
 
-      // Move camera slightly on mouse movement.
-      if (!isMobile && !isActive) {
-        camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, -(state.pointer.x * Math.PI) / 90, 0.05);
+      // Move camera slightly on mouse movement. On touch there's no pointer to
+      // follow, so turn back to straight ahead: panning in the projects portal
+      // leaves the camera turned, and tipped down that way the page skews.
+      if (!isActive) {
+        const yaw = isMobile ? 0 : -(state.pointer.x * Math.PI) / 90;
+        camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, yaw, 0.05);
       }
     }
   });
